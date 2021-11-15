@@ -15,7 +15,7 @@ client = vision.ImageAnnotatorClient()
 file_name = "Dental-Implants-All-on-4-Before-and-After.jpg"
 image_path = f".\{file_name}"
 
-image = Image.open(image_path)
+img = Image.open(image_path)
 with io.open(image_path, "rb") as image_file:
     content = image_file.read()
 
@@ -34,7 +34,7 @@ for face in faceAnnotations:
     right = face.landmarks[mouth_right_index].position.x
     bottom = face.landmarks[lower_lip_index].position.y
 
-    image_res = ImageOps.crop(image, (left, top, right, bottom)) #image.crop((left, top, right, bottom))
+    image_res = img.crop((left, top, right, bottom)) #image.crop((left, top, right, bottom))
     image_smooth = image_res.filter(ImageFilter.SMOOTH_MORE)
 
 image_smooth.save(f"mouth.png")
@@ -58,12 +58,12 @@ hsize = int((float(image.size[1])*float(wpercent)))
 image = image.resize((basewidth,hsize), Image.ANTIALIAS)
 image.save('mouth_resized.png') 
 
-# resized2 = cv2.resize(image, dim, interpolation=cv2.INTER_NEAREST)
+resized2 = cv2.resize(image, dim, interpolation=cv2.INTER_NEAREST)
 
-# cv2.imwrite("mouth_resized.png", resized2)
+cv2.imwrite("mouth_resized.png", resized2)
 
 
-
+image = cv2.imread("mouth_resized.png")
 
 
 # 216 ,248 ,243 rgb(171, 158, 115) // 162, 148, 122 // 226, 195, 168
@@ -109,7 +109,7 @@ for i in range(rows):
             count += 1
 
 ratio = count / ((rows * cols) - countb)
-print(ratio)
+print(f"{ratio*100}%")
 print(count)
 print((rows * cols) - countb)
 if (ratio > 0.5):
