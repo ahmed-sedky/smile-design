@@ -1,4 +1,4 @@
-import helper as Helper
+import message as Message
 import os
 import io
 import cv2
@@ -9,6 +9,7 @@ from PIL import ImageFilter
 import numpy as np
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
+mouthImagePath = "cached/mouth.png"
 
 
 def mouthDetection(imagePath):
@@ -19,42 +20,43 @@ def mouthDetection(imagePath):
 
     image = vision.Image(content=content)
     response = client.face_detection(image=image)
-    faceAnnotations = response.face_annotations
+    face = response.face_annotations[0]
 
     upper_lip_index = 8
     mouth_left_index = 10
     lower_lip_index = 9
     mouth_right_index = 11
 
-    for face in faceAnnotations:
-        left = face.landmarks[mouth_left_index].position.x
-        top = face.landmarks[upper_lip_index].position.y
-        right = face.landmarks[mouth_right_index].position.x
-        bottom = face.landmarks[lower_lip_index].position.y
+    left = face.landmarks[mouth_left_index].position.x
+    top = face.landmarks[upper_lip_index].position.y
+    right = face.landmarks[mouth_right_index].position.x
+    bottom = face.landmarks[lower_lip_index].position.y
 
-        mouthCrop(imagePath, (left, top, right, bottom))
+    mouthCrop(imagePath, (left, top, right, bottom))
+    mouthEnhance()
 
 
 def mouthCrop(imagePath, area):
-    image = Image.open(imagePath)
-    image_res = image.crop(area)
-    image_smooth = image_res.filter(ImageFilter.SMOOTH_MORE)
+    image = Image.open(imagePath).crop(area).filter(ImageFilter.SMOOTH_MORE)
+
     if not os.path.exists("cached"):
         os.makedirs("cached")
-    image_smooth.save(f"cached/mouth.png")
+    image.save(mouthImagePath)
 
+
+def mouthEnhance():
     basewidth = 300
-    image = Image.open("cached/mouth.png")
+    image = Image.open(mouthImagePath)
 
     wpercent = basewidth / float(image.size[0])
     hsize = int((float(image.size[1]) * float(wpercent)))
 
     image = image.resize((basewidth, hsize), Image.ANTIALIAS)
-    image.save("cached/mouth.png")
+    image.save(mouthImagePath)
 
 
 def checkDiscoloration(self):
-    image = cv2.imread("cached/mouth.png")
+    image = cv2.imread(mouthImagePath)
 
     bgr = [216, 248, 243]
     threshold = 70
@@ -68,7 +70,6 @@ def checkDiscoloration(self):
     yellowCount = 0
     blackCount = 0
     rows, cols, _ = image.shape
-
     for i in range(rows):
         for j in range(cols):
             pixel = resultBGR[i, j]
@@ -79,12 +80,13 @@ def checkDiscoloration(self):
 
     ratio = yellowCount / ((rows * cols) - blackCount)
 
-    discolorationResult = ""
     # print(ratio)
     # print(yellowCount)
     # print(((rows * cols) - blackCount))
+
+    discolorationResult = ""
     if ratio > 0.5:
         discolorationResult = "There is discoloration"
     else:
         discolorationResult = "There is no discoloration"
-    Helper.popMssg(self, discolorationResult)
+    Message.info(self, discolorationResult)

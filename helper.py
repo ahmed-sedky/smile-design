@@ -3,6 +3,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5 import QtWidgets, QtCore
 from pathlib import Path
 import face as Face
+import message as Message
 
 
 def browsefiles(self):
@@ -10,18 +11,22 @@ def browsefiles(self):
         self, "Open file", "../", "*.jpg;;" " *.png;;" "*.jpeg;;"
     )
     filePath = fname[0]
-    fileName = Path(filePath).stem
     extensionsToCheck = (".jpg", ".png", ".jpeg")
     if fname[0].endswith(extensionsToCheck):
-        plotImage(self, filePath)
-        setLabel(self, fileName)
-        Face.mouthDetection(filePath)
-        enableActions(self)
+        start(self, filePath)
     elif fname[0] != "":
-        errorMssg(self, "Invalid format.")
+        Message.error(self, "Invalid format.")
         return
     else:
         return
+
+
+def start(self, filePath):
+    fileName = Path(filePath).stem
+    plotImage(self, filePath)
+    setLabel(self, fileName)
+    Face.mouthDetection(filePath)
+    enableActions(self)
 
 
 def plotImage(self, imagePath):
@@ -41,11 +46,3 @@ def setLabel(self, label):
 def enableActions(self):
     self.discoloration.setEnabled(True)
     self.midline.setEnabled(True)
-
-
-def errorMssg(self, txt):
-    QMessageBox.critical(self, "Error", txt)
-
-
-def popMssg(self, txt):
-    QMessageBox.information(self, "Result", txt)
