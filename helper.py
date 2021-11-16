@@ -7,7 +7,7 @@ import face as Face
 
 def browsefiles(self):
     fname = QFileDialog.getOpenFileName(
-        self, "Open file", "C://Users", "*.jpg;;" " *.png;;" "*.jpeg;;"
+        self, "Open file", "../", "*.jpg;;" " *.png;;" "*.jpeg;;"
     )
     filePath = fname[0]
     fileName = Path(filePath).stem
