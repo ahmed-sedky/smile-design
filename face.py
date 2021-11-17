@@ -1,4 +1,5 @@
 import message as Message
+import helper as Helper
 import os
 import io
 import cv2
@@ -10,6 +11,7 @@ import numpy as np
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
 mouthImagePath = "cached/mouth.png"
+midlineImagePath = "cached/midline.png"
 
 
 def mouthDetection(imagePath):
@@ -26,12 +28,20 @@ def mouthDetection(imagePath):
     mouth_left_index = 10
     lower_lip_index = 9
     mouth_right_index = 11
+    eyes_center_index = 6
+    mouth_center_index = 12
 
     left = face.landmarks[mouth_left_index].position.x
     top = face.landmarks[upper_lip_index].position.y
     right = face.landmarks[mouth_right_index].position.x
     bottom = face.landmarks[lower_lip_index].position.y
 
+    mouth_x = int(face.landmarks[mouth_center_index].position.x)
+    mouth_y = int(face.landmarks[mouth_center_index].position.y)
+    eyes_x = int(face.landmarks[eyes_center_index].position.x)
+    eyes_y = int(face.landmarks[eyes_center_index].position.y)
+
+    drawMidline(imagePath,mouth_x,mouth_y,eyes_x,eyes_y)
     mouthCrop(imagePath, (left, top, right, bottom))
     mouthEnhance()
 
@@ -54,6 +64,23 @@ def mouthEnhance():
     image = image.resize((basewidth, hsize), Image.ANTIALIAS)
     image.save(mouthImagePath)
 
+def drawMidline(imagePath,mouth_x,mouth_y,eyes_x,eyes_y):
+    midline = []
+    img = cv2.imread(imagePath)
+    image = cv2.line(img, (eyes_x, eyes_y-150),
+                     (eyes_x, eyes_y+400), color=(255, 255, 255), thickness=1)
+    for i in range(-18, 18):
+        bgr = np.array(image[mouth_y][mouth_x+i])
+        midline.append([bgr[0], mouth_x+i])
+    midline.sort()
+    image = cv2.line(img, (midline[0][1], mouth_y-200),
+                     (midline[0][1], mouth_y+100), color=(0, 0, 255), thickness=1)
+    image = cv2.line(img, (midline[1][1], mouth_y-200),
+                     (midline[1][1], mouth_y+100), color=(0, 0, 255), thickness=1)
+    cv2.imwrite(midlineImagePath, image)
+
+def checkMidline(self):
+    Helper.plotImage(self,midlineImagePath)
 
 def checkDiscoloration(self):
     image = cv2.imread(mouthImagePath)
