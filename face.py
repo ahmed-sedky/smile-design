@@ -88,12 +88,11 @@ def checkDiscoloration(self):
     bgr = [216, 248, 243]
     threshold = 70
 
-    minBGR = np.array([bgr[0] - threshold, bgr[1] - threshold, bgr[2] - threshold])
-    maxBGR = np.array([bgr[0] + threshold, bgr[1] + threshold, bgr[2] + threshold])
+    minBGR = np.array([155, 155 ,160])
+    maxBGR = np.array([255,255,255])
 
     maskBGR = cv2.inRange(image, minBGR, maxBGR)
     resultBGR = cv2.bitwise_and(image, image, mask=maskBGR)
-
     yellowCount = 0
     blackCount = 0
     rows, cols, _ = image.shape
@@ -102,12 +101,12 @@ def checkDiscoloration(self):
             pixel = resultBGR[i, j]
             if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
                 blackCount += 1
-            elif pixel[0] < 180:
+            elif pixel[0] < 180 or pixel[0] in range (200,220) and pixel[1] in range(240,255) and pixel[2] in range(240,255):
                 yellowCount += 1
-
+    # print(blackCount, rows*cols)
     ratio = yellowCount / ((rows * cols) - blackCount)
 
-    # print(ratio)
+    print(ratio)
     # print(yellowCount)
     # print(((rows * cols) - blackCount))
 
