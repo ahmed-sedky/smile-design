@@ -9,6 +9,9 @@ class Ui(QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
         uic.loadUi("app.ui", self)
+        Helper.plotPalette(self)
+        self.palette.setVisible(False)
+        self.teethColor.setVisible(False)
         self.openImage.triggered.connect(lambda: Helper.browsefiles(self))
         self.discoloration.triggered.connect(lambda: Face.checkDiscoloration(self))
         self.midline.triggered.connect(lambda: Face.checkMidline(self))

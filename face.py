@@ -4,14 +4,14 @@ import os
 import io
 import cv2
 from google.cloud import vision
-from PIL import Image
-from PIL import ImageFilter
+from PIL import Image, ImageFilter,ImageDraw,ImageQt
 
 import numpy as np
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
 mouthImagePath = "cached/mouth.png"
 midlineImagePath = "cached/midline.png"
+teethColorImagePath = "cached/teethColor.png"
 
 
 def mouthDetection(imagePath):
@@ -40,7 +40,7 @@ def mouthDetection(imagePath):
     mouth_y = int(face.landmarks[mouth_center_index].position.y)
     eyes_x = int(face.landmarks[eyes_center_index].position.x)
     eyes_y = int(face.landmarks[eyes_center_index].position.y)
-
+    
     drawMidline(imagePath,mouth_x,mouth_y,eyes_x,eyes_y)
     mouthCrop(imagePath, (left, top, right, bottom))
     mouthEnhance()
@@ -68,15 +68,15 @@ def drawMidline(imagePath,mouth_x,mouth_y,eyes_x,eyes_y):
     midline = []
     img = cv2.imread(imagePath)
     image = cv2.line(img, (eyes_x, eyes_y-150),
-                     (eyes_x, eyes_y+400), color=(255, 255, 255), thickness=1)
+                     (eyes_x, eyes_y+400), color=(255, 255, 255), thickness=2)
     for i in range(-18, 18):
         bgr = np.array(image[mouth_y][mouth_x+i])
         midline.append([bgr[0], mouth_x+i])
     midline.sort()
     image = cv2.line(img, (midline[0][1], mouth_y-200),
-                     (midline[0][1], mouth_y+100), color=(0, 0, 255), thickness=1)
+                     (midline[0][1], mouth_y+100), color=(0, 0, 255), thickness=2)
     image = cv2.line(img, (midline[1][1], mouth_y-200),
-                     (midline[1][1], mouth_y+100), color=(0, 0, 255), thickness=1)
+                     (midline[1][1], mouth_y+100), color=(0, 0, 255), thickness=2)
     cv2.imwrite(midlineImagePath, image)
 
 def checkMidline(self):
@@ -116,4 +116,17 @@ def checkDiscoloration(self):
         discolorationResult = "There is discoloration"
     else:
         discolorationResult = "There is no discoloration"
+    createTeethColorImage((255,0,0))
+    Helper.plotTeethColor(self)
+    self.palette.setVisible(True)
     Message.info(self, discolorationResult)
+    
+def createTeethColorImage(rgb):
+    w, h = 50, 50
+    shape = [(0, 0), (w , h)]
+    img = Image.new("RGB", (w, h))
+
+    img1 = ImageDraw.Draw(img)
+    img1.rectangle(shape, fill=rgb)
+    img.save(teethColorImagePath)
+
