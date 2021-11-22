@@ -1,3 +1,4 @@
+from numpy.lib.type_check import imag
 import message as Message
 import helper as Helper
 import os
@@ -85,35 +86,53 @@ def checkMidline(self):
 def checkDiscoloration(self):
     image = cv2.imread(mouthImagePath)
 
-    bgr = [216, 248, 243]
-    threshold = 70
-
-    minBGR = np.array([bgr[0] - threshold, bgr[1] - threshold, bgr[2] - threshold])
-    maxBGR = np.array([bgr[0] + threshold, bgr[1] + threshold, bgr[2] + threshold])
+    minBGR = np.array([160, 160 ,160])
+    maxBGR = np.array([255,255,255])
 
     maskBGR = cv2.inRange(image, minBGR, maxBGR)
     resultBGR = cv2.bitwise_and(image, image, mask=maskBGR)
-
+    cv2.imshow("Masked Image",resultBGR)
     yellowCount = 0
     blackCount = 0
+    count = 0
+    cleanArr = []
     rows, cols, _ = image.shape
     for i in range(rows):
         for j in range(cols):
             pixel = resultBGR[i, j]
             if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
                 blackCount += 1
-            elif pixel[0] < 180:
-                yellowCount += 1
-
+            else:
+                cleanArr.append(pixel)
+                if pixel[0] < 180:
+                    yellowCount += 1
+    std = np.std(cleanArr)
+    
+    # print(np.mean(cleanArr, axis=0))
+    upper = np.mean(cleanArr, axis=0) + std
+    #print(upper)
+    lower = np.mean(cleanArr, axis=0) - std
+    #print(lower)
+    index = 0
+    for pixel in cleanArr:
+        if (pixel[0] < lower[0] or pixel[0] > upper[0]) and (pixel[1] < lower[1] or pixel[1] > upper[1]) and (pixel[2] < lower[2] or pixel[2] > upper[2]):
+            cleanArr.pop(index)
+            count+=1
+        index+=1
+    
+   # print(np.median(cleanArr, axis=0))
+    # print(np.mean(cleanArr, axis=0))
+    # print(blackCount, rows*cols)
     ratio = yellowCount / ((rows * cols) - blackCount)
 
     # print(ratio)
+    # print(count)
     # print(yellowCount)
     # print(((rows * cols) - blackCount))
 
     discolorationResult = ""
     if ratio > 0.5:
-        discolorationResult = "There is discoloration"
+        discolorationResult = "There is a discoloration"
     else:
         discolorationResult = "There is no discoloration"
     createTeethColorImage((255,0,0))
