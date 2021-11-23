@@ -23,14 +23,16 @@ def browsefiles(self):
 
 def start(self, filePath):
     try:
-        Face.mouthDetection(filePath)
+        Face.mouthDetection(self, filePath)
     except:
-        Message.error(self,"Couldn't detect mouth")
+        Message.error(self, "Couldn't detect mouth")
         return
     fileName = Path(filePath).stem
     plotImage(self, filePath)
     setLabel(self, fileName)
     enableActions(self)
+    self.colorsWidget.setVisible(False)
+
 
 def createScene(imagePath):
     pixelMap = QPixmap(imagePath).scaled(
@@ -41,9 +43,11 @@ def createScene(imagePath):
     scene.addItem(item)
     return scene
 
+
 def plotImage(self, imagePath):
     scene = createScene(imagePath)
     self.image.setScene(scene)
+
 
 def plotPalette(self):
     scene = createScene("cached/color_palette")
@@ -58,7 +62,7 @@ def enableActions(self):
     self.discoloration.setEnabled(True)
     self.midline.setEnabled(True)
 
+
 def plotTeethColor(self):
-    self.teethColor.setVisible(True)
-    scene = createScene("cached/teethColor")
+    scene = createScene("cached/teethColor.png")
     self.teethColor.setScene(scene)
