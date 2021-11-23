@@ -178,8 +178,7 @@ background-color: rgb(50, 50, 70);</string>
     <property name="title">
      <string>Check</string>
     </property>
-    <addaction name="discoloration"/>
-    <addaction name="midline"/>
+    <addaction name="checkAll"/>
    </widget>
    <addaction name="menuFILE"/>
    <addaction name="menuCheck"/>
@@ -192,20 +191,15 @@ background-color: rgb(50, 50, 70);</string>
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="discoloration">
+  <action name="checkAll">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Discoloration</string>
+    <string>Check Principles</string>
    </property>
-  </action>
-  <action name="midline">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Midline</string>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>

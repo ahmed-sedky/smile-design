@@ -16,10 +16,19 @@ midlineImagePath = "cached/midline.png"
 teethColorImagePath = "cached/teethColor.png"
 
 
-def mouthDetection(self, imagePath):
+def mouthDetection():
+    global mouth_left_x
+    global mouth_right_x
+    global lower_lip_y
+    global upper_lip_y
+    global mouth_center_x
+    global mouth_center_y
+    global eyes_center_x
+    global eyes_center_y
+
     client = vision.ImageAnnotatorClient()
 
-    with io.open(imagePath, "rb") as image_file:
+    with io.open(Helper.filePath, "rb") as image_file:
         content = image_file.read()
 
     image = vision.Image(content=content)
@@ -33,26 +42,23 @@ def mouthDetection(self, imagePath):
     eyes_center_index = 6
     mouth_center_index = 12
 
-    left = face.landmarks[mouth_left_index].position.x
-    top = face.landmarks[upper_lip_index].position.y
-    right = face.landmarks[mouth_right_index].position.x
-    bottom = face.landmarks[lower_lip_index].position.y
+    mouth_left_x = face.landmarks[mouth_left_index].position.x
+    upper_lip_y = face.landmarks[upper_lip_index].position.y
+    mouth_right_x = face.landmarks[mouth_right_index].position.x
+    lower_lip_y = face.landmarks[lower_lip_index].position.y
 
-    mouth_x = int(face.landmarks[mouth_center_index].position.x)
-    mouth_y = int(face.landmarks[mouth_center_index].position.y)
-    eyes_x = int(face.landmarks[eyes_center_index].position.x)
-    eyes_y = int(face.landmarks[eyes_center_index].position.y)
-    ratio = int(right - int(left))
+    mouth_center_x = int(face.landmarks[mouth_center_index].position.x)
+    mouth_center_y = int(face.landmarks[mouth_center_index].position.y)
+    eyes_center_x = int(face.landmarks[eyes_center_index].position.x)
+    eyes_center_y = int(face.landmarks[eyes_center_index].position.y)
 
-    ratio = int(ratio / 5)
-
-    drawMidline(self, imagePath, mouth_x, mouth_y, eyes_x, eyes_y, ratio)
-    mouthCrop(imagePath, (left, top, right, bottom))
+    mouthCrop()
     mouthEnhance()
 
 
-def mouthCrop(imagePath, area):
-    image = Image.open(imagePath).crop(area).filter(ImageFilter.SMOOTH_MORE)
+def mouthCrop():
+    area = (mouth_left_x, upper_lip_y, mouth_right_x, lower_lip_y)
+    image = Image.open(Helper.filePath).crop(area).filter(ImageFilter.SMOOTH_MORE)
 
     if not os.path.exists("cached"):
         os.makedirs("cached")
@@ -70,20 +76,24 @@ def mouthEnhance():
     image.save(mouthImagePath)
 
 
-def drawMidline(self, imagePath, mouth_x, mouth_y, eyes_x, eyes_y, ratio):
+def drawMidline(self):
+    ratio = int(mouth_right_x - int(mouth_left_x))
+
+    ratio = int(ratio / 5)
+
     midline = []
     final_midlines = []
-    img = cv2.imread(imagePath)
+    img = cv2.imread(Helper.filePath)
     image = cv2.line(
         img,
-        (eyes_x, eyes_y - 150),
-        (eyes_x, eyes_y + 400),
+        (eyes_center_x, eyes_center_y - 150),
+        (eyes_center_x, eyes_center_y + 400),
         color=(255, 255, 255),
         thickness=1,
     )
     for i in range(-1 * ratio, ratio):
-        bgr = np.array(image[mouth_y][mouth_x + i])
-        midline.append([bgr[0], mouth_x + i])
+        bgr = np.array(image[mouth_center_y][mouth_center_x + i])
+        midline.append([bgr[0], mouth_center_x + i])
 
     midline.sort()
 
@@ -93,7 +103,7 @@ def drawMidline(self, imagePath, mouth_x, mouth_y, eyes_x, eyes_y, ratio):
                 midline.remove(elem)
 
     for i in range(0, 3):
-        if abs(midline[i][1] - eyes_x) < 5:
+        if abs(midline[i][1] - eyes_center_x) < 5:
             final_midlines.clear()
             Message.info(
                 self, "Facial and Dental midline are almost identical. No shift found."
@@ -104,8 +114,8 @@ def drawMidline(self, imagePath, mouth_x, mouth_y, eyes_x, eyes_y, ratio):
     for x in final_midlines:
         image = cv2.line(
             img,
-            (x[1], mouth_y - 200),
-            (x[1], mouth_y + 100),
+            (x[1], mouth_center_y - 200),
+            (x[1], mouth_center_y + 100),
             color=(0, 0, 255),
             thickness=1,
         )
@@ -113,6 +123,7 @@ def drawMidline(self, imagePath, mouth_x, mouth_y, eyes_x, eyes_y, ratio):
 
 
 def checkMidline(self):
+    drawMidline(self)
     Helper.plotImage(self, midlineImagePath)
 
 
@@ -187,3 +198,8 @@ def createTeethColorImage(rgb):
     img1 = ImageDraw.Draw(img)
     img1.rectangle(shape, fill=rgb)
     img.save(teethColorImagePath)
+
+
+def checkAll(self):
+    checkDiscoloration(self)
+    checkMidline(self)

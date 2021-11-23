@@ -7,13 +7,15 @@ import message as Message
 
 
 def browsefiles(self):
+    global filePath
+
     fname = QFileDialog.getOpenFileName(
         self, "Open file", "../", "*.jpg;;" " *.png;;" "*.jpeg;;"
     )
     filePath = fname[0]
     extensionsToCheck = (".jpg", ".png", ".jpeg")
     if fname[0].endswith(extensionsToCheck):
-        start(self, filePath)
+        start(self)
     elif fname[0] != "":
         Message.error(self, "Invalid format.")
         return
@@ -21,27 +23,17 @@ def browsefiles(self):
         return
 
 
-def start(self, filePath):
-    try:
-        Face.mouthDetection(self, filePath)
-    except:
-        Message.error(self, "Couldn't detect mouth")
-        return
+def start(self):
+    # try:
+    Face.mouthDetection()
+    # except:
+    # Message.error(self, "Couldn't detect mouth")
+    # return
     fileName = Path(filePath).stem
     plotImage(self, filePath)
     setLabel(self, fileName)
     enableActions(self)
     self.colorsWidget.setVisible(False)
-
-
-def createScene(imagePath):
-    pixelMap = QPixmap(imagePath).scaled(
-        560, 560, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
-    )
-    item = QtWidgets.QGraphicsPixmapItem(pixelMap)
-    scene = QtWidgets.QGraphicsScene()
-    scene.addItem(item)
-    return scene
 
 
 def plotImage(self, imagePath):
@@ -54,15 +46,24 @@ def plotPalette(self):
     self.palette.setScene(scene)
 
 
+def plotTeethColor(self):
+    scene = createScene("cached/teethColor.png")
+    self.teethColor.setScene(scene)
+
+
+def createScene(imagePath):
+    pixelMap = QPixmap(imagePath).scaled(
+        560, 560, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
+    )
+    item = QtWidgets.QGraphicsPixmapItem(pixelMap)
+    scene = QtWidgets.QGraphicsScene()
+    scene.addItem(item)
+    return scene
+
+
 def setLabel(self, label):
     self.imageName.setText(label)
 
 
 def enableActions(self):
-    self.discoloration.setEnabled(True)
-    self.midline.setEnabled(True)
-
-
-def plotTeethColor(self):
-    scene = createScene("cached/teethColor.png")
-    self.teethColor.setScene(scene)
+    self.checkAll.setEnabled(True)

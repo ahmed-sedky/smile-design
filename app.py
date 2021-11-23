@@ -12,8 +12,7 @@ class Ui(QMainWindow):
         Helper.plotPalette(self)
         self.colorsWidget.setVisible(False)
         self.openImage.triggered.connect(lambda: Helper.browsefiles(self))
-        self.discoloration.triggered.connect(lambda: Face.checkDiscoloration(self))
-        self.midline.triggered.connect(lambda: Face.checkMidline(self))
+        self.checkAll.triggered.connect(lambda: Face.checkAll(self))
 
 
 if __name__ == "__main__":
