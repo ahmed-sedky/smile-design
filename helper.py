@@ -10,7 +10,7 @@ def browsefiles(self):
     global filePath
 
     fname = QFileDialog.getOpenFileName(
-        self, "Open file", "../", "*.jpg;;" " *.png;;" "*.jpeg;;"
+        self, "Open file", "./test", "*.jpg;;" " *.png;;" "*.jpeg;;"
     )
     filePath = fname[0]
     extensionsToCheck = (".jpg", ".png", ".jpeg")
@@ -24,11 +24,11 @@ def browsefiles(self):
 
 
 def start(self):
-    # try:
-    Face.mouthDetection()
-    # except:
-    # Message.error(self, "Couldn't detect mouth")
-    # return
+    try:
+        Face.mouthDetection()
+    except:
+        Message.error(self, "Couldn't detect mouth")
+        return
     fileName = Path(filePath).stem
     plotImage(self, filePath)
     setLabel(self, fileName)

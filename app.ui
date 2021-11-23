@@ -112,8 +112,8 @@ background-color: rgb(30, 30, 50);</string>
            <widget class="QGraphicsView" name="teethColor">
             <property name="maximumSize">
              <size>
-              <width>50</width>
-              <height>50</height>
+              <width>55</width>
+              <height>55</height>
              </size>
             </property>
             <property name="verticalScrollBarPolicy">

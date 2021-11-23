@@ -78,11 +78,11 @@ def mouthEnhance():
 
 def drawMidline(self):
     ratio = int(mouth_right_x - int(mouth_left_x))
-
     ratio = int(ratio / 5)
 
     midline = []
     final_midlines = []
+    shiftFlag = True
     img = cv2.imread(Helper.filePath)
     image = cv2.line(
         img,
@@ -105,9 +105,7 @@ def drawMidline(self):
     for i in range(0, 3):
         if abs(midline[i][1] - eyes_center_x) < 5:
             final_midlines.clear()
-            Message.info(
-                self, "Facial and Dental midline are almost identical. No shift found."
-            )
+            shiftFlag = False
             break
         final_midlines.append(midline[i])
 
@@ -119,6 +117,14 @@ def drawMidline(self):
             color=(0, 0, 255),
             thickness=1,
         )
+
+    if shiftFlag:
+        Message.info(self, "A midline shift found.")
+    else:
+        Message.info(
+            self, "Facial and Dental midline are almost identical. No shift found."
+        )
+
     cv2.imwrite(midlineImagePath, image)
 
 
@@ -191,7 +197,7 @@ def checkDiscoloration(self):
 
 
 def createTeethColorImage(rgb):
-    w, h = 50, 50
+    w, h = 55, 55
     shape = [(0, 0), (w, h)]
     img = Image.new("RGB", (w, h))
 
