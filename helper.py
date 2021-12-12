@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtWidgets, QtCore
 from pathlib import Path
@@ -13,7 +13,7 @@ def browsefiles(self):
         self, "Open file", "./test", "*.jpg;;" " *.png;;" "*.jpeg;;"
     )
     filePath = fname[0]
-    extensionsToCheck = (".jpg", ".png", ".jpeg",".jfif")
+    extensionsToCheck = (".jpg", ".png", ".jpeg", ".jfif")
     if fname[0].endswith(extensionsToCheck):
         start(self)
     elif fname[0] != "":

@@ -2,11 +2,11 @@ from numpy.lib.type_check import imag
 import message as Message
 import helper as Helper
 import os
-import io
 import cv2
-import time
-from google.cloud import vision
-from PIL import Image, ImageFilter, ImageDraw, ImageQt
+import cv2
+import dlib
+import numpy as np
+from PIL import Image, ImageDraw
 
 import numpy as np
 
@@ -14,55 +14,62 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
 mouthImagePath = "cached/mouth.png"
 midlineImagePath = "cached/midline.png"
 teethColorImagePath = "cached/teethColor.png"
+results = ""
 
 
 def mouthDetection():
+    global mouthPoints
     global mouth_left_x
     global mouth_right_x
-    global lower_lip_y
-    global upper_lip_y
     global mouth_center_x
     global mouth_center_y
     global eyes_center_x
     global eyes_center_y
+    global img
 
-    client = vision.ImageAnnotatorClient()
+    img = cv2.imread(Helper.filePath)
 
-    with io.open(Helper.filePath, "rb") as image_file:
-        content = image_file.read()
+    detector = dlib.get_frontal_face_detector()
 
-    image = vision.Image(content=content)
-    response = client.face_detection(image=image)
-    face = response.face_annotations[0]
+    predetector = dlib.shape_predictor("setup/shape_predictor_68_face_landmarks.dat")
 
-    upper_lip_index = 8
-    mouth_left_index = 10
-    lower_lip_index = 9
-    mouth_right_index = 11
-    eyes_center_index = 6
-    mouth_center_index = 12
+    dets = detector(img, 1)
+    for k, d in enumerate(dets):
+        shape = predetector(img, d)
+        xmouthpoints = [shape.part(x).x for x in range(60, 68)]
+        ymouthpoints = [shape.part(x).y for x in range(60, 68)]
 
-    mouth_left_x = face.landmarks[mouth_left_index].position.x
-    upper_lip_y = face.landmarks[upper_lip_index].position.y
-    mouth_right_x = face.landmarks[mouth_right_index].position.x
-    lower_lip_y = face.landmarks[lower_lip_index].position.y
+    eyes_center_x = shape.part(27).x
+    eyes_center_y = shape.part(27).y
+    mouth_center_x = shape.part(62).x
+    mouth_center_y = shape.part(62).y
+    mouth_left_x = shape.part(48).x
+    mouth_right_x = shape.part(54).x
 
-    mouth_center_x = int(face.landmarks[mouth_center_index].position.x)
-    mouth_center_y = int(face.landmarks[mouth_center_index].position.y)
-    eyes_center_x = int(face.landmarks[eyes_center_index].position.x)
-    eyes_center_y = int(face.landmarks[eyes_center_index].position.y)
+    pts = []
+    for i in range(0, 8):
+        pts.append([xmouthpoints[i], ymouthpoints[i]])
 
+    mouthPoints = np.array(pts)
     mouthCrop()
     mouthEnhance()
 
 
 def mouthCrop():
-    area = (mouth_left_x, upper_lip_y, mouth_right_x, lower_lip_y)
-    image = Image.open(Helper.filePath).crop(area).filter(ImageFilter.SMOOTH_MORE)
+    global mouthPoints
 
-    if not os.path.exists("cached"):
-        os.makedirs("cached")
-    image.save(mouthImagePath)
+    rect = cv2.boundingRect(mouthPoints)
+    x, y, w, h = rect
+    croped = img[y : y + h, x : x + w].copy()
+
+    mouthPoints = mouthPoints - mouthPoints.min(axis=0)
+
+    mask = np.zeros(croped.shape[:2], np.uint8)
+    cv2.drawContours(mask, [mouthPoints], -1, (255, 255, 255), -1, cv2.LINE_AA)
+
+    dst = cv2.bitwise_and(croped, croped, mask=mask)
+
+    cv2.imwrite(mouthImagePath, dst)
 
 
 def mouthEnhance():
@@ -77,6 +84,8 @@ def mouthEnhance():
 
 
 def drawMidline(self):
+    global results
+
     ratio = int(mouth_right_x - int(mouth_left_x))
     ratio = int(ratio / 6)
 
@@ -119,11 +128,9 @@ def drawMidline(self):
         )
 
     if shiftFlag:
-        Message.info(self, "A midline shift found.")
+        results += "A midline shift found\n"
     else:
-        Message.info(
-            self, "Facial and Dental midline are almost identical. No shift found."
-        )
+        results += "Facial and Dental midline are almost identical. No shift found\n"
 
     cv2.imwrite(midlineImagePath, image)
 
@@ -134,9 +141,11 @@ def checkMidline(self):
 
 
 def checkDiscoloration(self):
+    global results
+
     image = cv2.imread(mouthImagePath)
 
-    minBGR = np.array([160, 160, 160])
+    minBGR = np.array([120, 140, 140])
     maxBGR = np.array([255, 255, 255])
 
     maskBGR = cv2.inRange(image, minBGR, maxBGR)
@@ -186,14 +195,46 @@ def checkDiscoloration(self):
     # print(yellowCount)
     # print(((rows * cols) - blackCount))
 
-    discolorationResult = ""
     if ratio > 0.5:
-        discolorationResult = "There is a discoloration"
+        results += "There is a discoloration\n"
     else:
-        discolorationResult = "There is no discoloration"
+        results += "There is no discoloration\n"
     self.colorsWidget.setVisible(True)
     Helper.plotTeethColor(self)
-    Message.info(self, discolorationResult)
+
+
+def checkGummySmile(self):
+    global results
+    image = cv2.imread(mouthImagePath)
+
+    # cv2.imshow("Masked Image",resultBGR)
+    redCount = 0
+    blackCount = 0
+    cleanArr = []
+    rows, cols, _ = image.shape
+    for i in range(rows):
+        for j in range(cols):
+            pixel = image[i, j]
+            if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
+                blackCount += 1
+            else:
+                cleanArr.append(pixel)
+                if pixel[0] < 150 and pixel[1] < 150 and pixel[2] > 200:
+                    redCount += 1
+
+    ratio = redCount / ((rows * cols) - blackCount)
+
+    # print(ratio)
+    # print(count)
+    # print(redCount)
+    # print(((rows * cols) - blackCount))
+
+    if ratio > 0.05:
+        results += "There is a gummy smile"
+    else:
+        results += "There is no gummy smile"
+    self.colorsWidget.setVisible(True)
+    Helper.plotTeethColor(self)
 
 
 def createTeethColorImage(rgb):
@@ -207,5 +248,8 @@ def createTeethColorImage(rgb):
 
 
 def checkAll(self):
+    results = ""
     checkDiscoloration(self)
     checkMidline(self)
+    checkGummySmile(self)
+    Message.info(self, results)

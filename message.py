@@ -6,4 +6,4 @@ def error(self, txt):
 
 
 def info(self, txt):
-    QMessageBox.information(self, "Result", txt)
+    QMessageBox.information(self, "Results", txt)
