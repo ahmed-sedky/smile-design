@@ -78,7 +78,7 @@ def mouthEnhance():
 
 def drawMidline(self):
     ratio = int(mouth_right_x - int(mouth_left_x))
-    ratio = int(ratio / 5)
+    ratio = int(ratio / 6)
 
     midline = []
     final_midlines = []
@@ -89,7 +89,7 @@ def drawMidline(self):
         (eyes_center_x, eyes_center_y - 150),
         (eyes_center_x, eyes_center_y + 400),
         color=(255, 255, 255),
-        thickness=1,
+        thickness=2,
     )
     for i in range(-1 * ratio, ratio):
         bgr = np.array(image[mouth_center_y][mouth_center_x + i])
@@ -102,8 +102,8 @@ def drawMidline(self):
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
 
-    for i in range(0, 3):
-        if abs(midline[i][1] - eyes_center_x) < 5:
+    for i in range(0, 2):
+        if abs(midline[i][1] - eyes_center_x) < 4:
             final_midlines.clear()
             shiftFlag = False
             break
@@ -115,7 +115,7 @@ def drawMidline(self):
             (x[1], mouth_center_y - 200),
             (x[1], mouth_center_y + 100),
             color=(0, 0, 255),
-            thickness=1,
+            thickness=2,
         )
 
     if shiftFlag:

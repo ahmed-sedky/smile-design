@@ -13,7 +13,7 @@ def browsefiles(self):
         self, "Open file", "./test", "*.jpg;;" " *.png;;" "*.jpeg;;"
     )
     filePath = fname[0]
-    extensionsToCheck = (".jpg", ".png", ".jpeg")
+    extensionsToCheck = (".jpg", ".png", ".jpeg",".jfif")
     if fname[0].endswith(extensionsToCheck):
         start(self)
     elif fname[0] != "":
