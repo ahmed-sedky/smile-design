@@ -248,83 +248,22 @@ def createTeethColorImage(rgb):
     img.save(teethColorImagePath)
 
 def edgeDetection (self):
-    # image = imread(mouthImagePath,as_gray=True)
-    # imageBGR = imread(mouthImagePath,as_gray=False)
-    #imageBGR = cv2.imread(mouthImagePath)
-
     image = cv2.imread(mouthImagePath)
-
-    #calculating horizontal edges using prewitt kernel
-    # edges = prewitt_h(image)
-    # #calculating vertical edges using prewitt kernel
-    # # edges_prewitt_vertical = prewitt_v(image)
-    # print(len(edges[0]))
-    # for j in range( len(edges)):
-    #     for i in range(len(edges[0])):
-    #         if edges[j][i]<0 :
-    #             if  imageBGR[j][i][0] < 150 and  imageBGR[j][i][1] < 150 and  imageBGR[j][i][2] > 200:
-    #                 continue
-    #             else:
-    #                 imageBGR[j][i][0] = 255#205
-    #                 imageBGR[j][i][1] = 0 #219
-    #                 imageBGR[j][i][2] = 0 #225
-
-
-    # # #225, 219, 205
-
-
-    # cv2.imwrite("edges.jpg", imageBGR)
-
-    # cv2.imshow("mask", imageBGR)
-    # cv2.imshow("result", imageBGR)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    # convert to hsv
-    # hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-
-# #============================================
-
     minBGR = np.array([140, 140, 140]) #120,140,140
     maxBGR = np.array([255, 255, 255])
-
     mask = cv2.inRange(image, minBGR, maxBGR)
-
-
-    # resultBGR = cv2.bitwise_and(img, img, mask=maskBGR)
-
-
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
-    # opened_mask = cv2.morphologyEx(maskBGR, cv2.MORPH_OPEN, kernel)
-    # masked_img = cv2.bitwise_and(resultBGR, resultBGR, mask=opened_mask)
-# #============================================
-
-
-    # threshold using inRange
-
-    # range1 = (50,0,50)
-    # range2 = (120,120,170)
-    # mask = cv2.inRange(hsv,range1,range2)
-
     #  invert mask
     mask = 255 - mask
-
-    # # apply morphology closing and opening to mask
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1,1))
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-
     result = image.copy()
-    result[mask==0] = (205, 219 , 225) #225, 219, 205
-
-    # write result to disk
-    cv2.imwrite("man_face_mask.png", mask)
-    cv2.imwrite("man_face_white_background.jpg", result)
-
-    # display it
-    # cv2.imshow("mask", mask)
+    result[mask==0] = (205, 219 , 225) 
+    cv2.imwrite("coloredTeeth.jpg", result)
     cv2.imshow("result", result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
 def checkAll(self):
     global results
     results = ""
