@@ -14,7 +14,6 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
 mouthImagePath = "cached/mouth.png"
 midlineImagePath = "cached/midline.png"
 teethColorImagePath = "cached/teethColor.png"
-results = ""
 
 
 def mouthDetection():
@@ -210,7 +209,6 @@ def checkGummySmile(self):
     # cv2.imshow("Masked Image",resultBGR)
     redCount = 0
     blackCount = 0
-    cleanArr = []
     rows, cols, _ = image.shape
     for i in range(rows):
         for j in range(cols):
@@ -218,7 +216,6 @@ def checkGummySmile(self):
             if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
                 blackCount += 1
             else:
-                cleanArr.append(pixel)
                 if pixel[0] < 150 and pixel[1] < 150 and pixel[2] > 200:
                     redCount += 1
 
@@ -248,6 +245,7 @@ def createTeethColorImage(rgb):
 
 
 def checkAll(self):
+    global results
     results = ""
     checkDiscoloration(self)
     checkMidline(self)
