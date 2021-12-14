@@ -10,11 +10,14 @@ from PIL import Image, ImageDraw
 
 import numpy as np
 
+from skimage.io import imread, imshow
+from skimage.filters import prewitt_h,prewitt_v
+import matplotlib.pyplot as plt
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
 mouthImagePath = "cached/mouth.png"
 midlineImagePath = "cached/midline.png"
 teethColorImagePath = "cached/teethColor.png"
-results = ""
 
 
 def mouthDetection():
@@ -210,7 +213,6 @@ def checkGummySmile(self):
     # cv2.imshow("Masked Image",resultBGR)
     redCount = 0
     blackCount = 0
-    cleanArr = []
     rows, cols, _ = image.shape
     for i in range(rows):
         for j in range(cols):
@@ -218,7 +220,6 @@ def checkGummySmile(self):
             if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
                 blackCount += 1
             else:
-                cleanArr.append(pixel)
                 if pixel[0] < 150 and pixel[1] < 150 and pixel[2] > 200:
                     redCount += 1
 
@@ -246,10 +247,65 @@ def createTeethColorImage(rgb):
     img1.rectangle(shape, fill=rgb)
     img.save(teethColorImagePath)
 
+def edgeDetection (self):
+    image = imread(mouthImagePath,as_gray=True)
+    #calculating horizontal edges using prewitt kernel
+    edges_prewitt_horizontal = prewitt_h(image)
+    #calculating vertical edges using prewitt kernel
+    edges_prewitt_vertical = prewitt_v(image)
+    cv2.imshow("mask", edges_prewitt_horizontal)
+    cv2.imshow("result", edges_prewitt_horizontal)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    # convert to hsv
+#     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 
+# #============================================
+
+#     minBGR = np.array([120, 140, 140])
+#     maxBGR = np.array([255, 255, 255])
+
+#     mask = cv2.inRange(img, minBGR, maxBGR)
+#     # resultBGR = cv2.bitwise_and(img, img, mask=maskBGR)
+
+
+#     # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+#     # opened_mask = cv2.morphologyEx(maskBGR, cv2.MORPH_OPEN, kernel)
+#     # masked_img = cv2.bitwise_and(resultBGR, resultBGR, mask=opened_mask)
+# #============================================
+
+
+#     # threshold using inRange
+
+#     # range1 = (50,0,50)
+#     # range2 = (120,120,170)
+#     # mask = cv2.inRange(hsv,range1,range2)
+
+#     # #  invert mask
+#     mask = 255 - mask
+
+#     # # apply morphology closing and opening to mask
+#     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+#     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+#     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+#     result = img.copy()
+#     result[mask==0] = (255, 0 , 0)
+
+#     # write result to disk
+#     cv2.imwrite("man_face_mask.png", mask)
+#     cv2.imwrite("man_face_white_background.jpg", result)
+
+#     # display it
+#     cv2.imshow("mask", mask)
+#     cv2.imshow("result", result)
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
 def checkAll(self):
+    global results
     results = ""
     checkDiscoloration(self)
     checkMidline(self)
     checkGummySmile(self)
+    edgeDetection (self)
     Message.info(self, results)
