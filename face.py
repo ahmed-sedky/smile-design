@@ -1,3 +1,4 @@
+
 from numpy.lib.type_check import imag
 import message as Message
 import helper as Helper
@@ -11,7 +12,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 
 from skimage.io import imread, imshow
-from skimage.filters import prewitt_h,prewitt_v
+from skimage.filters import prewitt_h, prewitt_v
 import matplotlib.pyplot as plt
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"setup/config.json"
@@ -34,7 +35,8 @@ def mouthDetection():
 
     detector = dlib.get_frontal_face_detector()
 
-    predetector = dlib.shape_predictor("setup/shape_predictor_68_face_landmarks.dat")
+    predetector = dlib.shape_predictor(
+        "setup/shape_predictor_68_face_landmarks.dat")
 
     dets = detector(img, 1)
     for k, d in enumerate(dets):
@@ -63,7 +65,7 @@ def mouthCrop():
 
     rect = cv2.boundingRect(mouthPoints)
     x, y, w, h = rect
-    croped = img[y : y + h, x : x + w].copy()
+    croped = img[y: y + h, x: x + w].copy()
 
     mouthPoints = mouthPoints - mouthPoints.min(axis=0)
 
@@ -110,7 +112,7 @@ def drawMidline(self):
     midline.sort()
 
     for idx, x in enumerate(midline):
-        for elem in midline[idx + 1 :]:
+        for elem in midline[idx + 1:]:
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
 
@@ -226,7 +228,7 @@ def checkGummySmile(self):
     ratio = redCount / ((rows * cols) - blackCount)
 
     # print(ratio)
-    # print(count)
+    # print(((rows * cols) - blackCount))
     # print(redCount)
     # print(((rows * cols) - blackCount))
 
@@ -247,65 +249,61 @@ def createTeethColorImage(rgb):
     img1.rectangle(shape, fill=rgb)
     img.save(teethColorImagePath)
 
-def edgeDetection (self):
-    image = imread(mouthImagePath,as_gray=True)
-    #calculating horizontal edges using prewitt kernel
-    edges_prewitt_horizontal = prewitt_h(image)
-    #calculating vertical edges using prewitt kernel
-    edges_prewitt_vertical = prewitt_v(image)
-    cv2.imshow("mask", edges_prewitt_horizontal)
-    cv2.imshow("result", edges_prewitt_horizontal)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    # convert to hsv
-#     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 
-# #============================================
+def glare(self):
+    img = cv2.imread(mouthImagePath)
 
-#     minBGR = np.array([120, 140, 140])
-#     maxBGR = np.array([255, 255, 255])
+    # convert to gray
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-#     mask = cv2.inRange(img, minBGR, maxBGR)
-#     # resultBGR = cv2.bitwise_and(img, img, mask=maskBGR)
+    # threshold grayscale image to extract glare
+    mask = cv2.threshold(gray, 220, 255, cv2.THRESH_BINARY)[1]
 
+    # Optionally add some morphology close and open, if desired
+    #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+    #mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
+    #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    #mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
 
-#     # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
-#     # opened_mask = cv2.morphologyEx(maskBGR, cv2.MORPH_OPEN, kernel)
-#     # masked_img = cv2.bitwise_and(resultBGR, resultBGR, mask=opened_mask)
-# #============================================
+    # use mask with input to do inpainting
+    result = cv2.inpaint(img, mask, 21, cv2.INPAINT_TELEA)
+
+    # write result to disk
+    cv2.imwrite("apple_mask.png", mask)
+    cv2.imwrite("apple_inpaint.png", result)
 
 
-#     # threshold using inRange
+def edgeDetection(self):
+    image = cv2.imread(mouthImagePath)
+    
+    if results.find("There is no gummy smile")==-1:
+        minBGR = np.array([140, 170, 140])  # 120,140,140 (#140, 170, 140 for gummy smile)
+        maxBGR = np.array([255, 255, 248])  # 255, 255, 248 for gummy smile
+    else:
+        minBGR = np.array([140, 140, 140])  
+        maxBGR = np.array([255, 255, 255])     
+    mask = cv2.inRange(image, minBGR, maxBGR)
+    #  invert mask
+    cv2.imwrite("mask.jpg", mask)
 
-#     # range1 = (50,0,50)
-#     # range2 = (120,120,170)
-#     # mask = cv2.inRange(hsv,range1,range2)
+    mask = 255 - mask
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    result = image.copy()
+    result[mask == 0] = (205, 219, 225)
+    cv2.imwrite("coloredTeeth.jpg", result)
+    # cv2.imshow("result", result)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-#     # #  invert mask
-#     mask = 255 - mask
 
-#     # # apply morphology closing and opening to mask
-#     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-#     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-#     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-
-#     result = img.copy()
-#     result[mask==0] = (255, 0 , 0)
-
-#     # write result to disk
-#     cv2.imwrite("man_face_mask.png", mask)
-#     cv2.imwrite("man_face_white_background.jpg", result)
-
-#     # display it
-#     cv2.imshow("mask", mask)
-#     cv2.imshow("result", result)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
 def checkAll(self):
     global results
     results = ""
     checkDiscoloration(self)
     checkMidline(self)
     checkGummySmile(self)
-    edgeDetection (self)
+    glare(self)
+    edgeDetection(self)
     Message.info(self, results)
