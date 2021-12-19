@@ -1,4 +1,5 @@
 
+from numpy.lib.npyio import load
 from numpy.lib.type_check import imag
 import message as Message
 import helper as Helper
@@ -28,13 +29,14 @@ def mouthDetection():
     global eyes_center_x
     global eyes_center_y
     global img
+    
 
     img = cv2.imread(Helper.filePath)
 
     detector = dlib.get_frontal_face_detector()
 
     predetector = dlib.shape_predictor(
-        "setup/shape_predictor_68_face_landmarks.dat")
+        "setup/data.dat")
 
     dets = detector(img, 1)
     for k, d in enumerate(dets):
@@ -272,12 +274,41 @@ def teethColoring(self):
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
+def diastema(self):
+    #print("m")
+    global results
+    gap = 0
+    img = cv2.imread(Helper.filePath)
+    #pix = img.load
+    for i in range( -5 , 5 ):
+         pixel_color = np.array (img[mouth_center_y + 5][mouth_center_x + i])
+         print (pixel_color)
+        
+         if pixel_color [0]<=120: #and pixel_color[1]<=120 and pixel_color[2]<=120:
+             gap += 1
+         #cv2.circle(img,(mouth_center_x + i,mouth_center_y + 5), 1 ,(0,0,255),-1)     
+    if gap > 2:
+         results += "There is a diastema"
+    else:
+         results += "There is no diastema"
+    #print (pix[(mouth_center_x + 5) , (mouth_center_y + 5)])
+    cv2.imwrite("mo.png" , img )
+    
+
+
+      
+
+
+
+
+
 
 def checkAll(self):
     global results
     results = ""
     checkDiscoloration(self)
-    # checkMidline(self)
+    checkMidline(self)
     checkGummySmile(self)
     teethColoring(self)
+    diastema(self)
     Message.info(self, results)
