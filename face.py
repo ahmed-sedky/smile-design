@@ -35,7 +35,7 @@ def mouthDetection():
 
     detector = dlib.get_frontal_face_detector()
 
-    predetector = dlib.shape_predictor("setup/shape_predictor_68_face_landmarks.dat")
+    predetector = dlib.shape_predictor("setup/data.dat")
 
     dets = detector(img, 1)
     for k, d in enumerate(dets):
@@ -252,6 +252,7 @@ def createTeethColorImage(rgb):
 
 
 def teethColoring(self):
+    global result
     image = cv2.imread(mouthImagePath)
     
     if results.find("There is no gummy smile")==-1:
@@ -271,16 +272,20 @@ def teethColoring(self):
     result = image.copy()
     result[mask == 0] = (205, 219, 225)
     cv2.imwrite(coloredTeethImagePath, result)
+    cv2.imshow(coloredTeethImagePath, result)
     # cv2.imshow("result", result)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
+
+
+
 def diastema(self):
-    #print("m")
+    
     global results
     gap = 0
     img = cv2.imread(Helper.filePath)
-    #pix = img.load
+    
     for i in range( -5 , 5 ):
         if(gummy_smile):
             pixel_color = np.array (img[mouth_center_y + 10][mouth_center_x + i])
@@ -290,14 +295,14 @@ def diastema(self):
             pixel_color = np.array (img[mouth_center_y + 5][mouth_center_x + i])
             if pixel_color [0] < 125 or (pixel_color[0] < 150 and pixel_color[1] < 150 and pixel_color[2] > 200): #and pixel_color[1]<=120 and pixel_color[2]<=120:
                 gap += 1
-        print (pixel_color)
+        #print (pixel_color)
         #cv2.circle(img,(mouth_center_x + i,mouth_center_y + 5), 1 ,(0,0,255),-1)     
     if gap >= 2:
         results += "\nThere is a diastema"
     else:
         results += "\nThere is no diastema"
-    #print (pix[(mouth_center_x + 5) , (mouth_center_y + 5)])
-    cv2.imwrite("mo.png" , img )
+    
+    #cv2.imwrite("mo.png" , img )
     
 def checkAll(self):
     global results
