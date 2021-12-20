@@ -35,8 +35,7 @@ def mouthDetection():
 
     detector = dlib.get_frontal_face_detector()
 
-    predetector = dlib.shape_predictor(
-        "setup/shape_predictor_68_face_landmarks.dat")
+    predetector = dlib.shape_predictor("setup/shape_predictor_68_face_landmarks.dat")
 
     dets = detector(img, 1)
     for k, d in enumerate(dets):
@@ -292,8 +291,6 @@ def diastema(self):
             if pixel_color [0] < 125 or (pixel_color[0] < 150 and pixel_color[1] < 150 and pixel_color[2] > 200): #and pixel_color[1]<=120 and pixel_color[2]<=120:
                 gap += 1
         print (pixel_color)
-        print (gap)
-        print (gummy_smile)
         #cv2.circle(img,(mouth_center_x + i,mouth_center_y + 5), 1 ,(0,0,255),-1)     
     if gap >= 2:
         results += "\nThere is a diastema"
