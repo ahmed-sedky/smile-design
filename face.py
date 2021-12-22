@@ -169,7 +169,9 @@ def checkDiscoloration(self):
         index += 1
 
     mean = np.mean(cleanArr, axis=0)
+
     matchTeethColor(self, mean)
+
     createTeethColorImage((int(mean[2]), int(mean[1]), int(mean[0])))
     ratio = yellowCount / ((rows * cols) - blackCount)
 
@@ -286,12 +288,11 @@ def matchTeethColor(self, teeth_mean):
     global results
     ''' parameters: BGR color array'''
     # Vita Classical color palette BGR Values
-    BGR_palette_values = [(71, 74, 105), (77, 96, 121), (88, 105, 127), (88, 114, 140), (90, 111, 137), (89, 112, 138), (110, 129, 155), (113, 129, 151),
-                          (108, 129, 151), (108, 127, 149), (119, 131, 147), (124, 141, 164), (128, 139, 157), (128, 145, 167), (138, 150, 168), (131, 141, 156)]
+    BGR_palette_values = [(169, 207, 222), (149, 197, 231),  (128, 186, 219), (130, 186, 217), (121, 166, 210), (169, 212, 218), (149, 203, 220), (
+        113, 190, 221), (113, 179, 213), (143, 198, 216), (133, 193, 211), (120, 174, 203), (107, 156, 198), (146, 196, 221), (130, 184, 214), (110, 186, 212)]
 
-    shades_map = {0: 'C4', 1: 'A4', 2: 'C3', 3: 'B4', 4: 'A3.5', 5: 'B3', 6: 'A3',
-                  7: 'D3', 8: 'D4', 9: 'C2', 10: 'C1', 11: 'A2', 12: 'D2', 13: 'B2', 14: 'A1', 15: 'B1'}
-
+    shades_map = {0: 'A1', 1: 'A2', 2: 'A3', 3: 'A3.5', 4: 'A4', 5: 'B1', 6: 'B2', 7: 'B3',
+                  8: 'B4', 9: 'C1', 10: 'C2', 11: 'C3', 12: 'C4', 13: 'D2', 14: 'D3', 15: 'D4'}
     index = 0
     result = 1000
     similarity = 0
@@ -306,10 +307,11 @@ def matchTeethColor(self, teeth_mean):
             index = idx
             similarity = 100 - (100*(result / mean_avg))
             similarity = round(similarity, 2)
-            # print(f"difference: {result} ,index: {idx}, percentage: {similarity}")
+            # print(
+            #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
 
     color_shade = shades_map.get(index)
-    # print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
+    print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
     results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
 
 
