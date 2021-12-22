@@ -45,7 +45,7 @@ def mouthDetection():
     eyes_center_x = shape.part(27).x
     eyes_center_y = shape.part(27).y
     mouth_center_x = shape.part(62).x
-    mouth_center_y = shape.part(62).y
+    mouth_center_y = int((shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
 
@@ -99,6 +99,7 @@ def checkMidline(self):
     for i in range(-1 * ratio, ratio):
         bgr = np.array(image[mouth_center_y][mouth_center_x + i])
         midline.append([bgr[0], mouth_center_x + i])
+        # cv2.circle(img,(mouth_center_x + i,mouth_center_y), 1 ,(0,255,0),-1)
 
     midline.sort()
 
@@ -107,11 +108,17 @@ def checkMidline(self):
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
 
-    for i in range(0, 2):
+    for i in range(0, 3):
         if abs(midline[i][1] - eyes_center_x) < 4:
             final_midlines.clear()
             shiftFlag = False
             break
+        print(image[mouth_center_y][midline[i][1]])
+        print(image[mouth_center_y][midline[i][1] + 1])
+        print(image[mouth_center_y][midline[i][1] - 1])
+        print(image[mouth_center_y + 1][midline[i][1]])
+        print(image[mouth_center_y - 1][midline[i][1]])
+        print("========================")
         final_midlines.append(midline[i])
 
     for x in final_midlines:
@@ -127,6 +134,7 @@ def checkMidline(self):
         results += "A midline shift found\n"
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
+    cv2.imwrite(midlineImagePath, image)
 
 
 def checkDiscoloration(self):
@@ -320,8 +328,8 @@ def checkAll(self):
 
     results = f""
     checkGummySmile(self)
-    checkDiscoloration(self)
     checkMidline(self)
+    checkDiscoloration(self)
     checkDiastema(self)
     Helper.plotImage(self, imagePath)
     Message.info(self, results)
