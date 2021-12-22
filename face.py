@@ -224,10 +224,10 @@ def createTeethColorImage(rgb):
 def teethColoring(self):
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
-        minBGR = np.array([140, 170, 140])
+        minBGR = np.array([100, 180, 100])
         maxBGR = np.array([255, 255, 248])  # 255, 255, 248 for gummy smile
     else:
-        minBGR = np.array([140, 140, 140])
+        minBGR = np.array([100, 140, 100])
         maxBGR = np.array([255, 255, 255])
     mask = cv2.inRange(mouthImage, minBGR, maxBGR)
     #  invert mask
