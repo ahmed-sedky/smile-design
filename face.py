@@ -6,6 +6,7 @@ import cv2
 import cv2
 import dlib
 import numpy as np
+import math
 from PIL import Image, ImageDraw
 
 import numpy as np
@@ -66,7 +67,7 @@ def mouthCrop():
 
     rect = cv2.boundingRect(mouthPoints)
     x, y, w, h = rect
-    croped = img[y : y + h, x : x + w].copy()
+    croped = img[y: y + h, x: x + w].copy()
 
     mouthPoints = mouthPoints - mouthPoints.min(axis=0)
 
@@ -102,7 +103,7 @@ def checkMidline(self):
     midline.sort()
 
     for idx, x in enumerate(midline):
-        for elem in midline[idx + 1 :]:
+        for elem in midline[idx + 1:]:
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
 
@@ -168,6 +169,7 @@ def checkDiscoloration(self):
         index += 1
 
     mean = np.mean(cleanArr, axis=0)
+    matchTeethColor(self, mean)
     createTeethColorImage((int(mean[2]), int(mean[1]), int(mean[0])))
     ratio = yellowCount / ((rows * cols) - blackCount)
 
@@ -262,7 +264,8 @@ def checkDiastema(self):
     gap = 0
     for i in range(-5, 5):
         if gummy_smile:
-            pixel_color = np.array(img[mouth_center_y + 10][mouth_center_x + i])
+            pixel_color = np.array(
+                img[mouth_center_y + 10][mouth_center_x + i])
             if pixel_color[0] < 125:
                 gap += 1
         else:
@@ -279,10 +282,41 @@ def checkDiastema(self):
         results += "There is no diastema"
 
 
+def matchTeethColor(self, teeth_mean):
+    global results
+    ''' parameters: BGR color array'''
+    # Vita Classical color palette BGR Values
+    BGR_palette_values = [(71, 74, 105), (77, 96, 121), (88, 105, 127), (88, 114, 140), (90, 111, 137), (89, 112, 138), (110, 129, 155), (113, 129, 151),
+                          (108, 129, 151), (108, 127, 149), (119, 131, 147), (124, 141, 164), (128, 139, 157), (128, 145, 167), (138, 150, 168), (131, 141, 156)]
+
+    shades_map = {0: 'C4', 1: 'A4', 2: 'C3', 3: 'B4', 4: 'A3.5', 5: 'B3', 6: 'A3',
+                  7: 'D3', 8: 'D4', 9: 'C2', 10: 'C1', 11: 'A2', 12: 'D2', 13: 'B2', 14: 'A1', 15: 'B1'}
+
+    index = 0
+    result = 1000
+    similarity = 0
+
+    for idx, color in enumerate(BGR_palette_values):
+        mean_avg = np.mean(teeth_mean)
+        color_avg = np.mean(color)
+        subtraction = abs(mean_avg - color_avg)
+
+        if (subtraction < result):
+            result = subtraction
+            index = idx
+            similarity = 100 - (100*(result / mean_avg))
+            similarity = round(similarity, 2)
+            # print(f"difference: {result} ,index: {idx}, percentage: {similarity}")
+
+    color_shade = shades_map.get(index)
+    # print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
+    results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
+
+
 def checkAll(self):
     global results
 
-    results = ""
+    results = f""
     checkGummySmile(self)
     checkDiscoloration(self)
     checkMidline(self)
