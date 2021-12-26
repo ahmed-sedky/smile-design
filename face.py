@@ -6,6 +6,7 @@ import cv2
 import cv2
 import dlib
 import numpy as np
+import math
 from PIL import Image, ImageDraw
 
 import numpy as np
@@ -44,7 +45,7 @@ def mouthDetection():
     eyes_center_x = shape.part(27).x
     eyes_center_y = shape.part(27).y
     mouth_center_x = shape.part(62).x
-    mouth_center_y = shape.part(62).y
+    mouth_center_y = int((shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
 
@@ -66,7 +67,7 @@ def mouthCrop():
 
     rect = cv2.boundingRect(mouthPoints)
     x, y, w, h = rect
-    croped = img[y : y + h, x : x + w].copy()
+    croped = img[y: y + h, x: x + w].copy()
 
     mouthPoints = mouthPoints - mouthPoints.min(axis=0)
 
@@ -98,19 +99,26 @@ def checkMidline():
     for i in range(-1 * ratio, ratio):
         bgr = np.array(image[mouth_center_y][mouth_center_x + i])
         midline.append([bgr[0], mouth_center_x + i])
+        # cv2.circle(img,(mouth_center_x + i,mouth_center_y), 1 ,(0,255,0),-1)
 
     midline.sort()
 
     for idx, x in enumerate(midline):
-        for elem in midline[idx + 1 :]:
+        for elem in midline[idx + 1:]:
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
 
-    for i in range(0, 2):
+    for i in range(0, 3):
         if abs(midline[i][1] - eyes_center_x) < 4:
             final_midlines.clear()
             shiftFlag = False
             break
+        print(image[mouth_center_y][midline[i][1]])
+        print(image[mouth_center_y][midline[i][1] + 1])
+        print(image[mouth_center_y][midline[i][1] - 1])
+        print(image[mouth_center_y + 1][midline[i][1]])
+        print(image[mouth_center_y - 1][midline[i][1]])
+        print("========================")
         final_midlines.append(midline[i])
 
     for x in final_midlines:
@@ -126,6 +134,7 @@ def checkMidline():
         results += "A midline shift found\n"
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
+    cv2.imwrite(midlineImagePath, image)
 
 
 def checkDiscoloration(self):
@@ -168,6 +177,9 @@ def checkDiscoloration(self):
         index += 1
 
     mean = np.mean(cleanArr, axis=0)
+
+    matchTeethColor(self, mean)
+
     createTeethColorImage((int(mean[2]), int(mean[1]), int(mean[0])))
     ratio = yellowCount / ((rows * cols) - blackCount)
 
@@ -222,10 +234,10 @@ def createTeethColorImage(rgb):
 def teethColoring(text):
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
-        minBGR = np.array([140, 170, 140])
+        minBGR = np.array([100, 180, 100])
         maxBGR = np.array([255, 255, 248])  # 255, 255, 248 for gummy smile
     else:
-        minBGR = np.array([140, 140, 140])
+        minBGR = np.array([100, 140, 100])
         maxBGR = np.array([255, 255, 255])
     mask = cv2.inRange(mouthImage, minBGR, maxBGR)
     #  invert mask
@@ -269,7 +281,8 @@ def checkDiastema():
     gap = 0
     for i in range(-5, 5):
         if gummy_smile:
-            pixel_color = np.array(img[mouth_center_y + 10][mouth_center_x + i])
+            pixel_color = np.array(
+                img[mouth_center_y + 10][mouth_center_x + i])
             if pixel_color[0] < 125:
                 gap += 1
         else:
@@ -284,6 +297,37 @@ def checkDiastema():
         results += "There is a diastema"
     else:
         results += "There is no diastema"
+
+
+def matchTeethColor(self, teeth_mean):
+    global results
+    ''' parameters: BGR color array'''
+    # Vita Classical color palette BGR Values
+    BGR_palette_values = [(169, 207, 222), (149, 197, 231),  (128, 186, 219), (130, 186, 217), (121, 166, 210), (169, 212, 218), (149, 203, 220), (
+        113, 190, 221), (113, 179, 213), (143, 198, 216), (133, 193, 211), (120, 174, 203), (107, 156, 198), (146, 196, 221), (130, 184, 214), (110, 186, 212)]
+
+    shades_map = {0: 'A1', 1: 'A2', 2: 'A3', 3: 'A3.5', 4: 'A4', 5: 'B1', 6: 'B2', 7: 'B3',
+                  8: 'B4', 9: 'C1', 10: 'C2', 11: 'C3', 12: 'C4', 13: 'D2', 14: 'D3', 15: 'D4'}
+    index = 0
+    result = 1000
+    similarity = 0
+
+    for idx, color in enumerate(BGR_palette_values):
+        mean_avg = np.mean(teeth_mean)
+        color_avg = np.mean(color)
+        subtraction = abs(mean_avg - color_avg)
+
+        if (subtraction < result):
+            result = subtraction
+            index = idx
+            similarity = 100 - (100*(result / mean_avg))
+            similarity = round(similarity, 2)
+            # print(
+            #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
+
+    color_shade = shades_map.get(index)
+    print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
+    results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
 
 
 def checkAll(self):
