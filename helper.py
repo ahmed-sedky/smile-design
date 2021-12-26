@@ -33,7 +33,7 @@ def start(self):
     plotImage(self, filePath)
     setLabel(self, fileName)
     enableActions(self)
-    self.colorsWidget.setVisible(False)
+    disableTeethColoration(self)
 
 
 def plotImage(self, imagePath):
@@ -67,3 +67,17 @@ def setLabel(self, label):
 
 def enableActions(self):
     self.checkAll.setEnabled(True)
+
+
+def enableTeethColoration(self):
+    self.colorsWidget.setVisible(True)
+    self.colorsComboBox.setCurrentIndex(-1)
+
+
+def disableTeethColoration(self):
+    self.colorsWidget.setVisible(False)
+
+
+def comboBoxChanged(self, text):
+    Face.teethColoring(text)
+    plotImage(self, Face.imagePath)

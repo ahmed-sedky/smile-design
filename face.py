@@ -78,7 +78,7 @@ def mouthCrop():
     cv2.imwrite(mouthImagePath, dst)
 
 
-def checkMidline(self):
+def checkMidline():
     global results
 
     ratio = int(mouth_right_x - int(mouth_left_x))
@@ -172,15 +172,15 @@ def checkDiscoloration(self):
     ratio = yellowCount / ((rows * cols) - blackCount)
 
     if ratio > 0.5:
-        teethColoring(self)
         results += "There is a discoloration\n"
+        Helper.enableTeethColoration(self)
     else:
         results += "There is no discoloration\n"
-    self.colorsWidget.setVisible(True)
+        Helper.disableTeethColoration(self)
     Helper.plotTeethColor(self)
 
 
-def checkGummySmile(self):
+def checkGummySmile():
     global results
     global mouthImage
 
@@ -219,7 +219,7 @@ def createTeethColorImage(rgb):
     img2.save(teethColorImagePath)
 
 
-def teethColoring(self):
+def teethColoring(text):
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
         minBGR = np.array([140, 170, 140])
@@ -236,7 +236,14 @@ def teethColoring(self):
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     result = mouthImage.copy()
-    result[mask == 0] = (205, 219, 225)
+
+    newColor = ()
+    if text == "A1":
+        newColor = (255, 255, 255)
+    elif text == "B1":
+        newColor = (205, 219, 255)
+
+    result[mask == 0] = newColor
     cv2.imwrite(coloredTeethImagePath, result)
 
     for i in range(len(result)):
@@ -256,7 +263,7 @@ def teethColoring(self):
     cv2.imwrite(imagePath, img)
 
 
-def checkDiastema(self):
+def checkDiastema():
     global results
 
     gap = 0
@@ -283,9 +290,9 @@ def checkAll(self):
     global results
 
     results = ""
-    checkGummySmile(self)
+    checkGummySmile()
     checkDiscoloration(self)
-    checkMidline(self)
-    checkDiastema(self)
+    checkMidline()
+    checkDiastema()
     Helper.plotImage(self, imagePath)
     Message.info(self, results)
