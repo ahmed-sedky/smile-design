@@ -45,7 +45,8 @@ def mouthDetection():
     eyes_center_x = shape.part(27).x
     eyes_center_y = shape.part(27).y
     mouth_center_x = shape.part(62).x
-    mouth_center_y = int((shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
+    mouth_center_y = int(
+        (shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
 
@@ -107,19 +108,25 @@ def checkMidline(self):
         for elem in midline[idx + 1:]:
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
-
     for i in range(0, 3):
-        if abs(midline[i][1] - eyes_center_x) < 4:
-            final_midlines.clear()
-            shiftFlag = False
-            break
-        print(image[mouth_center_y][midline[i][1]])
-        print(image[mouth_center_y][midline[i][1] + 1])
-        print(image[mouth_center_y][midline[i][1] - 1])
-        print(image[mouth_center_y + 1][midline[i][1]])
-        print(image[mouth_center_y - 1][midline[i][1]])
-        print("========================")
+        # if abs(midline[i][1] - eyes_center_x) < 4:
+        #     final_midlines.clear()
+        #     shiftFlag = False
+        #     break
+
+        # print(image[mouth_center_y][midline[i][1]])
+        # print(image[mouth_center_y][midline[i][1] + 1])
+        # print(image[mouth_center_y][midline[i][1] - 1])
+        # print(image[mouth_center_y + 1][midline[i][1]])
+        # print(image[mouth_center_y - 1][midline[i][1]])
+        # print("========================")
         final_midlines.append(midline[i])
+    final_midlines.sort(key=lambda x: x[1])
+
+    distances = []
+    for i in range(1, 3):
+        distances.append(
+            abs(final_midlines[i][1] - final_midlines[i-1][1]))
 
     for x in final_midlines:
         image = cv2.line(
@@ -129,6 +136,18 @@ def checkMidline(self):
             color=(0, 0, 255),
             thickness=2,
         )
+
+    if abs(distances[0] - distances[1]) <= 5:
+        final_midline = final_midlines[1][1]
+    elif distances[0] > distances[1]:
+        final_midline = final_midlines[0][1]
+    else:
+        final_midline = final_midlines[2][1]
+
+    if abs(final_midline - mouth_center_x) < 4:
+        shiftFlag = False
+    else:
+        shiftFlag = True
 
     if shiftFlag:
         results += "A midline shift found\n"
