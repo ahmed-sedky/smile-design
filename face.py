@@ -7,7 +7,7 @@ import cv2
 import dlib
 import numpy as np
 import math
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 import numpy as np
 
@@ -109,17 +109,6 @@ def checkMidline():
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
     for i in range(0, 3):
-        # if abs(midline[i][1] - eyes_center_x) < 4:
-        #     final_midlines.clear()
-        #     shiftFlag = False
-        #     break
-
-        # print(image[mouth_center_y][midline[i][1]])
-        # print(image[mouth_center_y][midline[i][1] + 1])
-        # print(image[mouth_center_y][midline[i][1] - 1])
-        # print(image[mouth_center_y + 1][midline[i][1]])
-        # print(image[mouth_center_y - 1][midline[i][1]])
-        # print("========================")
         final_midlines.append(midline[i])
     final_midlines.sort(key=lambda x: x[1])
 
@@ -136,13 +125,16 @@ def checkMidline():
             color=(0, 0, 255),
             thickness=2,
         )
-
-    if abs(distances[0] - distances[1]) <= 5:
+    incisor_width = 0
+    if abs(distances[0] - distances[1]) <= 3:
         final_midline = final_midlines[1][1]
+        incisor_width = distances[0]
     elif distances[0] > distances[1]:
         final_midline = final_midlines[0][1]
+        incisor_width = distances[0]
     else:
         final_midline = final_midlines[2][1]
+        incisor_width = distances[1]
 
     if abs(final_midline - mouth_center_x) < 4:
         shiftFlag = False
@@ -153,7 +145,26 @@ def checkMidline():
         results += "A midline shift found\n"
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
+
+    pixel = np.array(image[mouth_center_y][final_midline + int(incisor_width/2)])
+    up = 0
+    while(pixel[0] > 80):
+        up += 1
+        
+        pixel = np.array(image[mouth_center_y - up]
+                         [final_midline + int(incisor_width/2)])
+        print(pixel)                 
+
     cv2.imwrite(imagePath, image)
+    im1 = Image.open('img2.jpg')
+    im2 = Image.open('Picture3.png')
+    im2 = im2.resize((incisor_width, 50))
+    im3 = ImageOps.mirror(im2)
+    im2_mask = im2.convert("L")
+    im3_mask = im3.convert("L")
+    im1.paste(im2, (final_midline - incisor_width, mouth_center_y - up), im2_mask)
+    im1.paste(im3, (final_midline, mouth_center_y - up), im3_mask)
+    im1.save('cached/test.png', quality=95)
 
 
 def checkDiscoloration(self):
