@@ -1,0 +1,197 @@
+vector<vector<double>> calc_3dist(vector<vector<double>> thiscurve , double x ,double z) {
+    vector<pair<double,pair<double,double>>> min_distances;
+    vector<vector<double>> results;
+    double calculated_distance = 0;
+    for (int i = 0; i < thiscurve.size(); i++) {
+        if (thiscurve[i][0] == x && thiscurve[i][1] == z) {
+            continue;
+        }
+        calculated_distance = sqrt(pow(x - thiscurve[i][0], 2) + pow(z - thiscurve[i][1], 2));
+
+        pair<double, pair<double, double>> points;
+        points.first = calculated_distance;
+        points.second.first = thiscurve[i][0];
+        points.second.second = thiscurve[i][1];
+        min_distances.push_back(points);
+    }
+    sort(std::begin(min_distances), std::end(min_distances));
+   /* for (int i = 0; i < min_distances.size(); i++) {
+        cout<<min_distances[i].first <<endl;
+    }*/
+    //cout << "======================================================" << endl;
+    for (int i = 0; i < 2; i++) {
+        results.push_back(vector<double>(2));
+        results[i][0] = min_distances[i].second.first;
+        results[i][1] = min_distances[i].second.second;
+       /* cout << x << "," << z << " results: " << results[i][0] << " ," <<results[i][1]<<endl;
+        cout << x << "," << z << " min_distance: " << min_distances[i].first << endl;*/
+    }
+    //cout << "======================================================" << endl;
+
+    return results;
+}
+vector<vector<double>> laplacien_smoothing(vector<vector<double>> curve ,int num_of_iterations ,bool first ) {
+    
+    double new_x = 0 ,new_z =0;
+    int cnt = 0;
+    double sumx = 0;
+    double sumz = 0;
+    vector<vector<double>>min_points;
+    vector<vector<double>>result;
+
+    //cout << "new_curve.size(): " << new_curve.size() << endl;
+    //if (num_of_iterations == 0) {
+    //    cout << "heeeey15" << endl;
+    //    cout << "new_curve.size(): " << new_curve.size() << endl;
+    //   /* for (int i = 0; i < new_curve.size(); i++) {
+    //        cout << "heeeey3:" << new_curve[i][0] << "," << new_curve[i][1] << endl;
+    //    }*/
+    //    return new_curve;
+    //    //return result;
+    //}
+    //else {
+        if (first) {
+           
+            for (int i = 0; i < curve.size(); i++) {
+                //new_curve.push_back(vector<double>(2));
+               /* if (i == 0 || i == 1 || i == curve.size() - 1 || i == curve.size() - 2) {
+                    new_curve[cnt][0] = curve[i][0];
+                    new_curve[cnt][1] = curve[i][1];
+                }*/
+                /*else {*/
+                    min_points = calc_3dist(curve ,curve[i][0] ,curve[i][1]);
+                    sumx = 0;
+                    sumz = 0;
+                    //cout << min_points.size() << endl;
+
+                    for (int j = 0; j < min_points.size(); j++) {
+                        sumx += min_points[j][0];
+                        sumz += min_points[j][1];
+                        //cout << sumx << "," << sumz << endl;
+
+                    }
+                   /* sumx += curve[i][0];
+                    sumz += curve[i][1];*/
+
+                   /* new_x = (curve[i - 2][0] + curve[i - 1][0] + curve[i][0] + curve[i + 1][0] + curve[i + 2][0]) / 5;
+                    new_z = (curve[i - 2][1] + curve[i - 1][1] + curve[i][1] + curve[i + 1][1] + curve[i + 2][1]) / 5;*/
+                    new_x = sumx / (min_points.size() );
+                    new_z = sumz / (min_points.size() );
+                    //cout << "heeeey2" << endl;
+                    //cout << "heeeey:" << new_x << new_z << endl;
+
+                    new_curve.push_back(vector<double>(2));
+                    new_curve[i][0] = new_x;
+                    new_curve[i][1] = new_z;
+                    //cout << "heeeey3" << endl;
+                    //cout << "heeeey2:" << new_curve[i][0] <<"," << new_curve[i][1] << endl;
+
+
+                    //min_points.clear();
+                //}
+                cnt++;
+            }
+            //cout << "cnt" <<cnt << endl;
+            cout << "heeeey2" << endl;
+          /*  for (int k = 0; k < new_curve.size(); k++) {
+                cout << "heeeey4:" << new_curve[k][0] << "," << new_curve[k][1] << endl;
+            }*/
+            if (num_of_iterations == 1) {
+                //    cout << "heeeey15" << endl;
+                //    cout << "new_curve.size(): " << new_curve.size() << endl;
+                //   /* for (int i = 0; i < new_curve.size(); i++) {
+                //        cout << "heeeey3:" << new_curve[i][0] << "," << new_curve[i][1] << endl;
+                //    }*/
+                for (int k = 0; k < new_curve.size(); k++) {
+                    cout << "heeeey4:" << new_curve[k][0] << "," << new_curve[k][1] << endl;
+                }
+                    return new_curve;
+                //    //return result;
+                }
+        }
+        
+        else {
+            cout << "heeeey3" << endl;
+            int size = new_curve.size();
+            int cnt2 = 0;
+           
+            for (int i = 0; i < size ; i++) {
+                new_x_z.push_back(vector<double>(2));
+               /* if (i == 0 || i == 1 || i == new_curve.size() - 1 || i == new_curve.size() - 2) {
+                    new_x_z[cnt][0] = new_curve[i][0];
+                    new_x_z[cnt][1] = new_curve[i][1];
+                }
+                else {*/
+                    
+                    min_points = calc_3dist(new_curve, new_curve[i][0], new_curve[i][1]);
+                    sumx = 0;
+                    sumz = 0;
+                    for (int j = 0; j < min_points.size(); j++) {
+                        sumx += min_points[j][0];
+                        sumz += min_points[j][1];
+                    }
+                   /* sumx += new_curve[i][0];
+                    sumz += new_curve[i][1];*/
+                    new_x = sumx / (min_points.size() );
+                    new_z = sumz / (min_points.size());
+                   /* new_x = (new_curve[i - 2][0] + new_curve[i - 1][0] + new_curve[i][0] + new_curve[i + 1][0] + new_curve[i + 2][0]) / 5;
+                    new_z = (new_curve[i - 2][1] + new_curve[i - 1][1] + new_curve[i][1] + new_curve[i + 1][1] + new_curve[i + 2][1]) / 5;*/
+                    new_x_z[i][0] = new_x;
+                    new_x_z[i][1] = new_z;
+                //}
+                    min_points.clear();
+                cnt2++;
+            }
+            new_curve.clear();
+            int cnt3 = 0;
+            cout << "heeeey5" << endl;
+            int size2 = new_x_z.size();
+            for (int i = 0; i < size2 ; i++) {
+                //cout << "heeeey8" << endl;
+               /* if (i == 0 || i == 1 || i == new_x_z.size() - 1 || i == new_x_z.size() - 2) {
+                    new_curve[cnt][0] = new_x_z[i][0];
+                    new_curve[cnt][1] = new_x_z[i][1];
+                }
+                else {*/
+                    min_points = calc_3dist(new_x_z, new_x_z[i][0], new_x_z[i][1]);
+                    sumx = 0;
+                    sumz = 0;
+                    for (int j = 0; j < min_points.size(); j++) {
+                        sumx += min_points[j][0];
+                        sumz += min_points[j][1];
+                    }
+                  /*  sumx += new_x_z[i][0];
+                    sumz += new_x_z[i][1];*/
+                    new_x = sumx / (min_points.size());
+                    new_z = sumz / (min_points.size());
+                   /* new_x = (new_x_z[i - 2][0] + new_x_z[i - 1][0] + new_x_z[i][0] + new_x_z[i + 1][0] + new_x_z[i + 2][0]) / 5;
+                    new_z = (new_x_z[i - 2][1] + new_x_z[i - 1][1] + new_x_z[i][1] + new_x_z[i + 1][1] + new_x_z[i + 2][1]) / 5;*/
+                    //cout << "heeeey6" << endl;
+                    new_curve.push_back(vector<double>(2));
+                    new_curve[i][0] = new_x;
+                    new_curve[i][1] = new_z;
+                //}
+                    min_points.clear();
+               
+                //cout << "heeeey7" << endl;
+                cnt3++;
+            }
+            new_x_z.clear();
+            if (num_of_iterations == 1) {
+                //    cout << "heeeey15" << endl;
+                //    cout << "new_curve.size(): " << new_curve.size() << endl;
+                //   /* for (int i = 0; i < new_curve.size(); i++) {
+                //        cout << "heeeey3:" << new_curve[i][0] << "," << new_curve[i][1] << endl;
+                //    }*/
+                    return new_curve;
+                //    //return result;
+                }
+        }
+        cout << "heeeey4" << endl;
+        num_of_iterations--;
+        cout << num_of_iterations << endl;
+
+        laplacien_smoothing(new_curve, num_of_iterations, false);
+        return new_curve;
+    //}
+}

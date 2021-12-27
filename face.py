@@ -27,6 +27,7 @@ def mouthDetection():
     global mouth_right_x
     global mouth_center_x
     global mouth_center_y
+    global mouth_center_y2
     global eyes_center_x
     global eyes_center_y
     global img
@@ -47,6 +48,7 @@ def mouthDetection():
     mouth_center_x = shape.part(62).x
     mouth_center_y = int(
         (shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
+    mouth_center_y2 =  shape.part(62).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
 
@@ -156,16 +158,21 @@ def checkMidline():
         print(pixel)                 
 
     cv2.imwrite(imagePath, image)
-    im1 = Image.open('img2.jpg')
+    im1 = Image.open(imagePath)
     im2 = Image.open('Picture3.png')
-    im2 = im2.resize((incisor_width, 50))
+    im2 = im2.resize((incisor_width,int(1.25*incisor_width)))# 50
     im3 = ImageOps.mirror(im2)
     im2_mask = im2.convert("L")
     im3_mask = im3.convert("L")
-    im1.paste(im2, (final_midline - incisor_width, mouth_center_y - up), im2_mask)
-    im1.paste(im3, (final_midline, mouth_center_y - up), im3_mask)
+    if (gummy_smile):
+        print ("sss")
+        im1.paste(im2, (final_midline - incisor_width, mouth_center_y2 + 5), im2_mask)
+        im1.paste(im3, (final_midline, mouth_center_y2 +5 ), im3_mask)
+    else:
+        im1.paste(im2, (final_midline - incisor_width, mouth_center_y2), im2_mask)
+        im1.paste(im3, (final_midline, mouth_center_y2 ), im3_mask)
     im1.save('cached/test.png', quality=95)
-
+    
 
 def checkDiscoloration(self):
     global results
@@ -241,10 +248,9 @@ def checkGummySmile():
                     redCount += 1
 
     ratio = redCount / ((rows * cols) - blackCount)
-
+    global gummy_smile
     if ratio > 0.07:
         results += "There is a gummy smile\n"
-        global gummy_smile
         gummy_smile = True
     else:
         results += "There is no gummy smile\n"
@@ -267,12 +273,20 @@ def teethColoring(text):
     img = cv2.imread(imagePath)
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
-        minBGR = np.array([100, 180, 100])
+        minBGR = np.array([50, 180, 30])   #([100, 180, 100])
         maxBGR = np.array([255, 255, 248])  # 255, 255, 248 for gummy smile
     else:
-        minBGR = np.array([100, 140, 100])
+        minBGR = np.array([50, 140, 30]) #([100, 140, 100)
         maxBGR = np.array([255, 255, 255])
-    mask = cv2.inRange(mouthImage, minBGR, maxBGR)
+    mask2 = cv2.inRange(mouthImage, minBGR, maxBGR)
+
+    low_red = np.array([84, 155, 161]) # ([161, 155, 84])
+    high_red = np.array([255, 255, 179]) # ([179, 255, 255])
+    mask0 = cv2.inRange(mouthImage, low_red, high_red)
+
+
+    # join my masks
+    mask = mask2 - mask0
     #  invert mask
     # cv2.imwrite("mask.jpg", mask)
 
@@ -284,7 +298,7 @@ def teethColoring(text):
 
     newColor = ()
     if text == "A1":
-        newColor = (255, 255, 255)
+        newColor = (220, 220, 220)
     elif text == "B1":
         newColor = (205, 219, 255)
 
@@ -326,7 +340,7 @@ def checkDiastema():
             ):
                 gap += 1
         # cv2.circle(img,(mouth_center_x + i,mouth_center_y + 5), 1 ,(0,0,255),-1)
-    if gap >= 2:
+    if gap > 2:
         results += "There is a diastema"
     else:
         results += "There is no diastema"
