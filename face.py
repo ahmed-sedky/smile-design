@@ -80,7 +80,7 @@ def mouthCrop():
     cv2.imwrite(mouthImagePath, dst)
 
 
-def checkMidline(self):
+def checkMidline():
     global results
 
     ratio = int(mouth_right_x - int(mouth_left_x))
@@ -153,7 +153,7 @@ def checkMidline(self):
         results += "A midline shift found\n"
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
-    cv2.imwrite(midlineImagePath, image)
+    cv2.imwrite(imagePath, image)
 
 
 def checkDiscoloration(self):
@@ -203,15 +203,15 @@ def checkDiscoloration(self):
     ratio = yellowCount / ((rows * cols) - blackCount)
 
     if ratio > 0.5:
-        teethColoring(self)
         results += "There is a discoloration\n"
+        Helper.enableTeethColoration(self)
     else:
         results += "There is no discoloration\n"
-    self.colorsWidget.setVisible(True)
+        Helper.disableTeethColoration(self)
     Helper.plotTeethColor(self)
 
 
-def checkGummySmile(self):
+def checkGummySmile():
     global results
     global mouthImage
 
@@ -250,7 +250,10 @@ def createTeethColorImage(rgb):
     img2.save(teethColorImagePath)
 
 
-def teethColoring(self):
+def teethColoring(text):
+    global img
+
+    img = cv2.imread(imagePath)
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
         minBGR = np.array([100, 180, 100])
@@ -267,7 +270,14 @@ def teethColoring(self):
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     result = mouthImage.copy()
-    result[mask == 0] = (205, 219, 225)
+
+    newColor = ()
+    if text == "A1":
+        newColor = (255, 255, 255)
+    elif text == "B1":
+        newColor = (205, 219, 255)
+
+    result[mask == 0] = newColor
     cv2.imwrite(coloredTeethImagePath, result)
 
     for i in range(len(result)):
@@ -287,7 +297,7 @@ def teethColoring(self):
     cv2.imwrite(imagePath, img)
 
 
-def checkDiastema(self):
+def checkDiastema():
     global results
 
     gap = 0
@@ -313,13 +323,45 @@ def checkDiastema(self):
 
 def matchTeethColor(self, teeth_mean):
     global results
-    ''' parameters: BGR color array'''
+    """ parameters: BGR color array"""
     # Vita Classical color palette BGR Values
-    BGR_palette_values = [(169, 207, 222), (149, 197, 231),  (128, 186, 219), (130, 186, 217), (121, 166, 210), (169, 212, 218), (149, 203, 220), (
-        113, 190, 221), (113, 179, 213), (143, 198, 216), (133, 193, 211), (120, 174, 203), (107, 156, 198), (146, 196, 221), (130, 184, 214), (110, 186, 212)]
+    BGR_palette_values = [
+        (169, 207, 222),
+        (149, 197, 231),
+        (128, 186, 219),
+        (130, 186, 217),
+        (121, 166, 210),
+        (169, 212, 218),
+        (149, 203, 220),
+        (113, 190, 221),
+        (113, 179, 213),
+        (143, 198, 216),
+        (133, 193, 211),
+        (120, 174, 203),
+        (107, 156, 198),
+        (146, 196, 221),
+        (130, 184, 214),
+        (110, 186, 212),
+    ]
 
-    shades_map = {0: 'A1', 1: 'A2', 2: 'A3', 3: 'A3.5', 4: 'A4', 5: 'B1', 6: 'B2', 7: 'B3',
-                  8: 'B4', 9: 'C1', 10: 'C2', 11: 'C3', 12: 'C4', 13: 'D2', 14: 'D3', 15: 'D4'}
+    shades_map = {
+        0: "A1",
+        1: "A2",
+        2: "A3",
+        3: "A3.5",
+        4: "A4",
+        5: "B1",
+        6: "B2",
+        7: "B3",
+        8: "B4",
+        9: "C1",
+        10: "C2",
+        11: "C3",
+        12: "C4",
+        13: "D2",
+        14: "D3",
+        15: "D4",
+    }
     index = 0
     result = 1000
     similarity = 0
@@ -329,10 +371,10 @@ def matchTeethColor(self, teeth_mean):
         color_avg = np.mean(color)
         subtraction = abs(mean_avg - color_avg)
 
-        if (subtraction < result):
+        if subtraction < result:
             result = subtraction
             index = idx
-            similarity = 100 - (100*(result / mean_avg))
+            similarity = 100 - (100 * (result / mean_avg))
             similarity = round(similarity, 2)
             # print(
             #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
@@ -345,10 +387,10 @@ def matchTeethColor(self, teeth_mean):
 def checkAll(self):
     global results
 
-    results = f""
-    checkGummySmile(self)
-    checkMidline(self)
+    results = ""
+    checkGummySmile()
     checkDiscoloration(self)
-    checkDiastema(self)
+    checkMidline()
+    checkDiastema()
     Helper.plotImage(self, imagePath)
     Message.info(self, results)
