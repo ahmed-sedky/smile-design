@@ -138,44 +138,51 @@ def checkMidline():
         final_midline = final_midlines[2][1]
         incisor_width = distances[1]
 
-    print(abs(distances[0] - distances[1]))
     if abs(final_midline - eyes_center_x) <= 8:
         shiftFlag = False
     else:
         shiftFlag = True
 
-    print(abs(final_midline - eyes_center_x))
     if shiftFlag:
         results += "A midline shift found\n"
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
 
-    pixel = np.array(image[mouth_center_y]
+
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+# Blur the image for better edge detection
+    img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
+    # Canny Edge Detection
+    edges = cv2.Canny(image=img_blur, threshold1=100,
+                  threshold2=200)  # Canny Edge Detection
+    pixel = (edges[mouth_center_y]
                      [final_midline + int(incisor_width/2)])
+      
     up = 0
-    while(pixel[0] > 80):
+    while(int(pixel) == 0):
         up += 1
-
-        pixel = np.array(image[mouth_center_y - up]
+        pixel = (edges[mouth_center_y + up]
                          [final_midline + int(incisor_width/2)])
-        # print(pixel)
-
+                         
+    # image = cv2.line(
+    #         img,
+    #         (final_midline + int(incisor_width/2), mouth_center_y + up),
+    #         (final_midline + int(incisor_width/2) + 200, mouth_center_y + up),
+    #         color=(0, 20, 0),
+    #         thickness=2,
+    #     )                     
+    incisors_lower_edge = mouth_center_y + up - int(1.25*incisor_width) 
     cv2.imwrite(imagePath, image)
+    
     im1 = Image.open(imagePath)
     im2 = Image.open('Picture3.png')
     im2 = im2.resize((incisor_width, int(1.25*incisor_width)))  # 50
     im3 = ImageOps.mirror(im2)
     im2_mask = im2.convert("L")
     im3_mask = im3.convert("L")
-    if (gummy_smile):
-        print("sss")
-        im1.paste(im2, (final_midline - incisor_width,
-                  mouth_center_y2 + 5), im2_mask)
-        im1.paste(im3, (final_midline, mouth_center_y2 + 5), im3_mask)
-    else:
-        im1.paste(im2, (final_midline - incisor_width,
-                  mouth_center_y2), im2_mask)
-        im1.paste(im3, (final_midline, mouth_center_y2), im3_mask)
+    im1.paste(im2, (final_midline - incisor_width,
+                incisors_lower_edge), im2_mask)
+    im1.paste(im3, (final_midline, incisors_lower_edge ), im3_mask)
     im1.save('cached/test.png', quality=95)
 
 
@@ -409,7 +416,7 @@ def matchTeethColor(self, teeth_mean):
             #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
 
     color_shade = shades_map.get(index)
-    print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
+    #print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
     results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
 
 
