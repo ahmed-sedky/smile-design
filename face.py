@@ -48,7 +48,7 @@ def mouthDetection():
     mouth_center_x = shape.part(62).x
     mouth_center_y = int(
         (shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
-    mouth_center_y2 =  shape.part(62).y
+    mouth_center_y2 = shape.part(62).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
 
@@ -128,9 +128,9 @@ def checkMidline():
             thickness=2,
         )
     incisor_width = 0
-    if abs(distances[0] - distances[1]) <= 3:
-        final_midline = final_midlines[1][1]
+    if abs(distances[0] - distances[1]) <= 5:
         incisor_width = distances[0]
+        final_midline = final_midlines[1][1]
     elif distances[0] > distances[1]:
         final_midline = final_midlines[0][1]
         incisor_width = distances[0]
@@ -138,41 +138,46 @@ def checkMidline():
         final_midline = final_midlines[2][1]
         incisor_width = distances[1]
 
-    if abs(final_midline - mouth_center_x) < 4:
+    print(abs(distances[0] - distances[1]))
+    if abs(final_midline - eyes_center_x) <= 8:
         shiftFlag = False
     else:
         shiftFlag = True
 
+    print(abs(final_midline - eyes_center_x))
     if shiftFlag:
         results += "A midline shift found\n"
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
 
-    pixel = np.array(image[mouth_center_y][final_midline + int(incisor_width/2)])
+    pixel = np.array(image[mouth_center_y]
+                     [final_midline + int(incisor_width/2)])
     up = 0
     while(pixel[0] > 80):
         up += 1
-        
+
         pixel = np.array(image[mouth_center_y - up]
                          [final_midline + int(incisor_width/2)])
-        print(pixel)                 
+        # print(pixel)
 
     cv2.imwrite(imagePath, image)
     im1 = Image.open(imagePath)
     im2 = Image.open('Picture3.png')
-    im2 = im2.resize((incisor_width,int(1.25*incisor_width)))# 50
+    im2 = im2.resize((incisor_width, int(1.25*incisor_width)))  # 50
     im3 = ImageOps.mirror(im2)
     im2_mask = im2.convert("L")
     im3_mask = im3.convert("L")
     if (gummy_smile):
-        print ("sss")
-        im1.paste(im2, (final_midline - incisor_width, mouth_center_y2 + 5), im2_mask)
-        im1.paste(im3, (final_midline, mouth_center_y2 +5 ), im3_mask)
+        print("sss")
+        im1.paste(im2, (final_midline - incisor_width,
+                  mouth_center_y2 + 5), im2_mask)
+        im1.paste(im3, (final_midline, mouth_center_y2 + 5), im3_mask)
     else:
-        im1.paste(im2, (final_midline - incisor_width, mouth_center_y2), im2_mask)
-        im1.paste(im3, (final_midline, mouth_center_y2 ), im3_mask)
+        im1.paste(im2, (final_midline - incisor_width,
+                  mouth_center_y2), im2_mask)
+        im1.paste(im3, (final_midline, mouth_center_y2), im3_mask)
     im1.save('cached/test.png', quality=95)
-    
+
 
 def checkDiscoloration(self):
     global results
@@ -273,17 +278,16 @@ def teethColoring(text):
     img = cv2.imread(imagePath)
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
-        minBGR = np.array([50, 180, 30])   #([100, 180, 100])
+        minBGR = np.array([50, 180, 30])  # ([100, 180, 100])
         maxBGR = np.array([255, 255, 248])  # 255, 255, 248 for gummy smile
     else:
-        minBGR = np.array([50, 140, 30]) #([100, 140, 100)
+        minBGR = np.array([50, 140, 30])  # ([100, 140, 100)
         maxBGR = np.array([255, 255, 255])
     mask2 = cv2.inRange(mouthImage, minBGR, maxBGR)
 
-    low_red = np.array([84, 155, 161]) # ([161, 155, 84])
-    high_red = np.array([255, 255, 179]) # ([179, 255, 255])
+    low_red = np.array([84, 155, 161])  # ([161, 155, 84])
+    high_red = np.array([255, 255, 179])  # ([179, 255, 255])
     mask0 = cv2.inRange(mouthImage, low_red, high_red)
-
 
     # join my masks
     mask = mask2 - mask0
