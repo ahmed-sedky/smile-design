@@ -18,6 +18,7 @@ mouthImagePath = "cached/mouth.png"
 midlineImagePath = "cached/midline.png"
 teethColorImagePath = "cached/teethColor.png"
 coloredTeethImagePath = "cached/coloredTeeth.png"
+templatePath = "cached/template.png"
 imagePath = "cached/final.png"
 
 
@@ -84,6 +85,9 @@ def mouthCrop():
 
 def checkMidline():
     global results
+    global incisor_width
+    global final_midline
+    global incisors_lower_edge
 
     ratio = int(mouth_right_x - int(mouth_left_x))
     ratio = int(ratio / 6)
@@ -172,10 +176,11 @@ def checkMidline():
     #         thickness=2,
     #     )                     
     incisors_lower_edge = mouth_center_y + up - int(1.25*incisor_width) 
-    cv2.imwrite(imagePath, image)
-    
-    im1 = Image.open(imagePath)
-    im2 = Image.open('Picture3.png')
+    cv2.imwrite(midlineImagePath, image)
+
+def templateMatching():
+    im1 = Image.open(midlineImagePath)
+    im2 = Image.open(templatePath)
     im2 = im2.resize((incisor_width, int(1.25*incisor_width)))  # 50
     im3 = ImageOps.mirror(im2)
     im2_mask = im2.convert("L")
@@ -183,8 +188,7 @@ def checkMidline():
     im1.paste(im2, (final_midline - incisor_width,
                 incisors_lower_edge), im2_mask)
     im1.paste(im3, (final_midline, incisors_lower_edge ), im3_mask)
-    im1.save('cached/test.png', quality=95)
-
+    im1.save(imagePath, quality=95)
 
 def checkDiscoloration(self):
     global results
@@ -282,7 +286,7 @@ def createTeethColorImage(rgb):
 def teethColoring(text):
     global img
 
-    img = cv2.imread(imagePath)
+    img = cv2.imread(midlineImagePath)
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
         minBGR = np.array([50, 180, 30])  # ([100, 180, 100])
@@ -330,7 +334,7 @@ def teethColoring(text):
             if flag:
                 img[y + i][x + j] = result[i][j]
 
-    cv2.imwrite(imagePath, img)
+    cv2.imwrite(midlineImagePath, img)
 
 
 def checkDiastema():
@@ -428,5 +432,6 @@ def checkAll(self):
     checkDiscoloration(self)
     checkMidline()
     checkDiastema()
+    templateMatching()
     Helper.plotImage(self, imagePath)
     Message.info(self, results)

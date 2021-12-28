@@ -80,4 +80,5 @@ def disableTeethColoration(self):
 
 def comboBoxChanged(self, text):
     Face.teethColoring(text)
+    Face.templateMatching()
     plotImage(self, Face.imagePath)
