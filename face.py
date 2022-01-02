@@ -173,16 +173,20 @@ def checkMidline():
     #     )                     
     incisors_lower_edge = mouth_center_y + up - int(1.25*incisor_width) 
     cv2.imwrite(imagePath, image)
-    
+
     im1 = Image.open(imagePath)
     im2 = Image.open('Picture3.png')
+    
     im2 = im2.resize((incisor_width, int(1.25*incisor_width)))  # 50
     im3 = ImageOps.mirror(im2)
+
     im2_mask = im2.convert("L")
     im3_mask = im3.convert("L")
+
     im1.paste(im2, (final_midline - incisor_width,
                 incisors_lower_edge), im2_mask)
     im1.paste(im3, (final_midline, incisors_lower_edge ), im3_mask)
+
     im1.save('cached/test.png', quality=95)
 
 
