@@ -385,6 +385,7 @@ def checkDiastema():
 
     cv2.imwrite(imagePath2, img)
     img5 = cv2.imread(imagePath2)
+    img6 = img5
     gap = 0
     mean = np.mean(cleanArr, axis=0)
 
