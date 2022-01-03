@@ -29,16 +29,18 @@ def start(self):
     except:
         Message.error(self, "Couldn't detect mouth")
         return
-    fileName = Path(filePath).stem
     plotImage(self, filePath)
-    setLabel(self, fileName)
-    enableActions(self)
+    setLabel(self, "Before & After")
     disableTeethColoration(self)
+    Face.checkAll(self)
 
 
 def plotImage(self, imagePath):
-    scene = createScene(imagePath)
-    self.image.setScene(scene)
+    self.image.setPhoto(QPixmap(imagePath))
+
+
+def plotImageAfter(self, imagePath):
+    self.imageAfter.setPhoto(QPixmap(imagePath))
 
 
 def plotPalette(self):
@@ -62,11 +64,7 @@ def createScene(imagePath):
 
 
 def setLabel(self, label):
-    self.imageName.setText(label)
-
-
-def enableActions(self):
-    self.checkAll.setEnabled(True)
+    self.statusLabel.setText(label)
 
 
 def enableTeethColoration(self):
@@ -80,4 +78,5 @@ def disableTeethColoration(self):
 
 def comboBoxChanged(self, text):
     Face.teethColoring(text)
-    plotImage(self, Face.imagePath)
+    Face.templateMatching()
+    plotImageAfter(self, Face.imagePath)
