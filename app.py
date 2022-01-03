@@ -12,7 +12,7 @@ class Ui(QMainWindow):
         Helper.plotPalette(self)
         self.colorsWidget.setVisible(False)
         self.openImage.triggered.connect(lambda: Helper.browsefiles(self))
-        self.checkAll.triggered.connect(lambda: Face.checkAll(self))
+        self.checkAll.triggered.connect(lambda: Face.showResults(self))
         self.colorsComboBox.activated[str].connect(
             lambda text: Helper.comboBoxChanged(self, text)
         )

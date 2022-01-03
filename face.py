@@ -47,8 +47,7 @@ def mouthDetection():
     eyes_center_x = shape.part(27).x
     eyes_center_y = shape.part(27).y
     mouth_center_x = shape.part(62).x
-    mouth_center_y = int(
-        (shape.part(66).y - shape.part(62).y)/2) + shape.part(62).y
+    mouth_center_y = int((shape.part(66).y - shape.part(62).y) / 2) + shape.part(62).y
     mouth_center_y2 = shape.part(62).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
@@ -71,7 +70,7 @@ def mouthCrop():
 
     rect = cv2.boundingRect(mouthPoints)
     x, y, w, h = rect
-    croped = img[y: y + h, x: x + w].copy()
+    croped = img[y : y + h, x : x + w].copy()
 
     mouthPoints = mouthPoints - mouthPoints.min(axis=0)
 
@@ -111,7 +110,7 @@ def checkMidline():
     midline.sort()
 
     for idx, x in enumerate(midline):
-        for elem in midline[idx + 1:]:
+        for elem in midline[idx + 1 :]:
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
     for i in range(0, 3):
@@ -120,8 +119,7 @@ def checkMidline():
 
     distances = []
     for i in range(1, 3):
-        distances.append(
-            abs(final_midlines[i][1] - final_midlines[i-1][1]))
+        distances.append(abs(final_midlines[i][1] - final_midlines[i - 1][1]))
 
     for x in final_midlines:
         image = cv2.line(
@@ -152,43 +150,42 @@ def checkMidline():
     else:
         results += "Facial and Dental midline are almost identical. No shift found\n"
 
-
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-# Blur the image for better edge detection
+    # Blur the image for better edge detection
     img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
     # Canny Edge Detection
-    edges = cv2.Canny(image=img_blur, threshold1=100,
-                  threshold2=200)  # Canny Edge Detection
-    pixel = (edges[mouth_center_y]
-                     [final_midline + int(incisor_width/2)])
-      
+    edges = cv2.Canny(
+        image=img_blur, threshold1=100, threshold2=200
+    )  # Canny Edge Detection
+    pixel = edges[mouth_center_y][final_midline + int(incisor_width / 2)]
+
     up = 0
-    while(int(pixel) == 0):
+    while int(pixel) == 0:
         up += 1
-        pixel = (edges[mouth_center_y + up]
-                         [final_midline + int(incisor_width/2)])
-                         
+        pixel = edges[mouth_center_y + up][final_midline + int(incisor_width / 2)]
+
     # image = cv2.line(
     #         img,
     #         (final_midline + int(incisor_width/2), mouth_center_y + up),
     #         (final_midline + int(incisor_width/2) + 200, mouth_center_y + up),
     #         color=(0, 20, 0),
     #         thickness=2,
-    #     )                     
-    incisors_lower_edge = mouth_center_y + up - int(1.25*incisor_width) 
+    #     )
+    incisors_lower_edge = mouth_center_y + up - int(1.25 * incisor_width)
     cv2.imwrite(midlineImagePath, image)
+
 
 def templateMatching():
     im1 = Image.open(midlineImagePath)
     im2 = Image.open(templatePath)
-    im2 = im2.resize((incisor_width, int(1.25*incisor_width)))  # 50
+    im2 = im2.resize((incisor_width, int(1.25 * incisor_width)))  # 50
     im3 = ImageOps.mirror(im2)
     im2_mask = im2.convert("L")
     im3_mask = im3.convert("L")
-    im1.paste(im2, (final_midline - incisor_width,
-                incisors_lower_edge), im2_mask)
-    im1.paste(im3, (final_midline, incisors_lower_edge ), im3_mask)
+    im1.paste(im2, (final_midline - incisor_width, incisors_lower_edge), im2_mask)
+    im1.paste(im3, (final_midline, incisors_lower_edge), im3_mask)
     im1.save(imagePath, quality=95)
+
 
 def checkDiscoloration(self):
     global results
@@ -343,8 +340,7 @@ def checkDiastema():
     gap = 0
     for i in range(-5, 5):
         if gummy_smile:
-            pixel_color = np.array(
-                img[mouth_center_y + 10][mouth_center_x + i])
+            pixel_color = np.array(img[mouth_center_y + 10][mouth_center_x + i])
             if pixel_color[0] < 125:
                 gap += 1
         else:
@@ -420,7 +416,7 @@ def matchTeethColor(self, teeth_mean):
             #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
 
     color_shade = shades_map.get(index)
-    #print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
+    # print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
     results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
 
 
@@ -433,5 +429,9 @@ def checkAll(self):
     checkMidline()
     checkDiastema()
     templateMatching()
-    Helper.plotImage(self, imagePath)
+    Helper.plotImageAfter(self, imagePath)
+    showResults(self)
+
+
+def showResults(self):
     Message.info(self, results)
