@@ -20,6 +20,7 @@ teethColorImagePath = "cached/teethColor.png"
 coloredTeethImagePath = "cached/coloredTeeth.png"
 templatePath = "cached/template.png"
 imagePath = "cached/final.png"
+imagePath2 = "cached/diastema.png"
 
 
 def mouthDetection():
@@ -336,25 +337,80 @@ def teethColoring(text):
 
 def checkDiastema():
     global results
+    global img
 
+    img = cv2.imread(Helper.filePath)
+    if results.find("There is no gummy smile") == -1:
+        # 120,140,140 (#140, 170, 140 for gummy smile)
+        minBGR = np.array([50, 180, 30])  # ([100, 180, 100])
+        maxBGR = np.array([255, 255, 248])  # 255, 255, 248 for gummy smile
+    else:
+        minBGR = np.array([50, 140, 30])  # ([100, 140, 100)
+        maxBGR = np.array([255, 255, 255])
+    mask2 = cv2.inRange(mouthImage, minBGR, maxBGR)
+
+    low_red = np.array([84, 155, 161])  # ([161, 155, 84])
+    high_red = np.array([255, 255, 179])  # ([179, 255, 255])
+    mask0 = cv2.inRange(mouthImage, low_red, high_red)
+
+    # join my masks
+    mask = mask2 - mask0
+    #  invert mask
+    # cv2.imwrite("mask.jpg", mask)
+
+    mask = 255 - mask
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    result = mouthImage.copy()
+
+    newColor = ()
+    newColor = (250, 250, 250)
+
+
+    result[mask == 0] = newColor
+    cv2.imwrite(coloredTeethImagePath, result)
+
+    for i in range(len(result)):
+        for j in range(len(result[0])):
+            pixel = np.array(result[i][j])
+            if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
+                continue
+            pixel2 = np.array(img[y + i][x + j])
+            flag = False
+            for k in range(3):
+                if pixel[k] != pixel2[k]:
+                    flag = True
+                    break
+            if flag:
+                img[y + i][x + j] = result[i][j]
+
+    cv2.imwrite(imagePath2, img)
+    img5 = cv2.imread(imagePath2 , 0)
+    img6 = img5
     gap = 0
     for i in range(-5, 5):
         if gummy_smile:
-            pixel_color = np.array(img[mouth_center_y + 10][mouth_center_x + i])
-            if pixel_color[0] < 125:
+            pixel_color = np.array(
+                img6[mouth_center_y2 + 6][mouth_center_x + i])
+            #cv2.circle(img,(mouth_center_x + i,mouth_center_y2 + 20), 1 ,(0,0,255),-1)
+            if pixel_color < 155:
                 gap += 1
         else:
-            pixel_color = np.array(img[mouth_center_y + 5][mouth_center_x + i])
+            pixel_color = np.array(img6[mouth_center_y2 ][mouth_center_x + i])
             # and pixel_color[1]<=120 and pixel_color[2]<=120:
-            if pixel_color[0] < 125 or (
-                pixel_color[0] < 150 and pixel_color[1] < 150 and pixel_color[2] > 200
-            ):
+            if pixel_color < 155:
+                 #or (#pixel_color[0] < 150 #and pixel_color[1] < 150 and pixel_color[2] > 200
+            #):
                 gap += 1
-        # cv2.circle(img,(mouth_center_x + i,mouth_center_y + 5), 1 ,(0,0,255),-1)
-    if gap > 2:
+            #cv2.circle(img,(mouth_center_x + i,mouth_center_y2 + 6), 1 ,(0,0,255),-1)
+
+        print(pixel_color)
+    if gap > 2 and gap < 8:
         results += "There is a diastema"
     else:
         results += "There is no diastema"
+    #cv2.imwrite(imagePath, img)
 
 
 def matchTeethColor(self, teeth_mean):
