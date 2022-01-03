@@ -18,7 +18,7 @@ mouthImagePath = "cached/mouth.png"
 midlineImagePath = "cached/midline.png"
 teethColorImagePath = "cached/teethColor.png"
 coloredTeethImagePath = "cached/coloredTeeth.png"
-templatePath = "cached/template.png"
+templatePath = "temp1.png"
 imagePath = "cached/final.png"
 imagePath2 = "cached/diastema.png"
 imagePath3 = "cached/diastema2.png"
@@ -98,13 +98,8 @@ def checkMidline():
     final_midlines = []
     shiftFlag = True
     img = cv2.imread(imagePath)
-    image = cv2.line(
-        img,
-        (eyes_center_x, eyes_center_y - 150),
-        (eyes_center_x, eyes_center_y + 400),
-        color=(255, 255, 255),
-        thickness=2,
-    )
+    # 
+    image = img
     for i in range(-1 * ratio, ratio):
         bgr = np.array(image[mouth_center_y][mouth_center_x + i])
         midline.append([bgr[0], mouth_center_x + i])
@@ -124,14 +119,14 @@ def checkMidline():
     for i in range(1, 3):
         distances.append(abs(final_midlines[i][1] - final_midlines[i - 1][1]))
 
-    for x in final_midlines:
-        image = cv2.line(
-            img,
-            (x[1], mouth_center_y - 200),
-            (x[1], mouth_center_y + 100),
-            color=(0, 0, 255),
-            thickness=2,
-        )
+    # for x in final_midlines:
+    #     image = cv2.line(
+    #         img,
+    #         (x[1], mouth_center_y - 200),
+    #         (x[1], mouth_center_y + 100),
+    #         color=(0, 0, 255),
+    #         thickness=2,
+    #     )
     incisor_width = 0
     if abs(distances[0] - distances[1]) <= 5:
         incisor_width = distances[0]
@@ -167,13 +162,6 @@ def checkMidline():
         up += 1
         pixel = edges[mouth_center_y + up][final_midline + int(incisor_width / 2)]
 
-    # image = cv2.line(
-    #         img,
-    #         (final_midline + int(incisor_width/2), mouth_center_y + up),
-    #         (final_midline + int(incisor_width/2) + 200, mouth_center_y + up),
-    #         color=(0, 20, 0),
-    #         thickness=2,
-    #     )
     incisors_lower_edge = mouth_center_y + up - int(1.25 * incisor_width)
     cv2.imwrite(midlineImagePath, image)
 
@@ -181,15 +169,12 @@ def checkMidline():
 def templateMatching():
     im1 = Image.open(midlineImagePath)
     im2 = Image.open(templatePath)
-    im2 = im2.resize((incisor_width, int(1.25 * incisor_width)))  # 50
-    im3 = ImageOps.mirror(im2)
-
-    im2_mask = im2.convert("L")
-    im3_mask = im3.convert("L")
-
-    im1.paste(im2, (final_midline - incisor_width,
-                incisors_lower_edge), im2_mask)
-    im1.paste(im3, (final_midline, incisors_lower_edge ), im3_mask)
+    
+    mouth_width = mouth_right_x - mouth_left_x
+    im2 = im2.resize((int (mouth_width*0.8), int(1.25 * incisor_width)))  # 50
+        
+    im1.paste(im2, (final_midline - int(im2.size[0] / 2),
+                incisors_lower_edge), im2)
     im1.save(imagePath, quality=95)
 
 
