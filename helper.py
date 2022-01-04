@@ -111,3 +111,14 @@ def removeTemplatePixmapItem(self):
         self.imageAfter.scene().removeItem(item)
     except:
         pass
+
+def scaleTemplate(self):
+    global item
+
+    try:
+        item.setPixmap(item.pixmap().scale(0.8,0.8))
+        removeTemplatePixmapItem(self)
+        print(item)
+        self.imageAfter.scene().addItem(item)
+    except:
+        pass

@@ -21,6 +21,9 @@ class Ui(QMainWindow):
         self.shapesComboBox.activated[str].connect(
             lambda text: Helper.shapesComboBoxChanged(self, text)
         )
+        self.scaleTemplateUp.triggered.connect(lambda: Helper.scaleTemplate(self))
+        self.scaleTemplateDown.triggered.connect(lambda: Helper.scaleTemplate(self))
+
 
 
 if __name__ == "__main__":
