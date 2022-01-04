@@ -48,9 +48,9 @@
  The software was made using \textbf{Python} and \textbf{PyQt}. The software can detect the following defects in someone's smile:
 \begin{enumerate}
     \item First of all, the mouth is cropped from the original image using 8 point surrounding the mouth using \textbf{Dlib}'s facial landmarks detector.
-    \item Teeth Discoloration: using a an algorithm which  that can detect whether the color of the teeth is within the acceptable shades of white.
-    \item Midline Shift: using \textbf{Dlib}'s facial landmarks detector, the facial midline can be detected from the eyes center points. Moreover, the dental midline is detected by picking random pixels along the upper teeth with equal distances, then the pixels close to each other are eliminated. In addition, the darkest 3-pixels are chosen, and the distances between each pixel is calculated. If the distances between the 3-pixels are equal, then the dental midline is in the intermediate space between them. Hence, the distance between the dental midline and the facial midline can be calculated.
-    \item Diastema: The intermediate distance between the central incisors is calculated by measuring how many dark pixels between the facial midline and the two central incisors.
+    \item Teeth Discoloration: using an algorithm that can detect whether the color of the teeth is within the acceptable shades of white.
+    \item Midline Shift: using \textbf{Dlib}'s facial landmarks detector, the facial midline can be detected from the eyes center points. Moreover, the dental midline is detected by picking random pixels along the upper teeth with equal distances, then the pixels close to each other are eliminated. In addition, the darkest 3-pixels are chosen, and the distances between each pixel are calculated. If the distances between the 3-pixels are equal, then the dental midline is in the intermediate space between them. Hence, the distance between the dental midline and the facial midline can be calculated.
+    \item Diastema: The intermediate distance between the central incisors is calculated by measuring how many dark pixels are between the facial midline and the two central incisors.
     \item Gummy Smile: The ratio between the teeth and gum is calculated in an image by using color masking for the gum and the teeth.
     \item Template Matching: The user can choose between 4 pre-rendered smile templates based on their facial structure.
     
@@ -82,8 +82,8 @@ The software was tested on 34 images and had the following results. (The \checkm
  \hline
  Midline Shift & 30/35 & 85.7\% \\
  \hline
- Diastema & 29/35 & 83/& \\ [1ex] 
- \hline
+ Diastema & 29/35 & 83\%\\ [1ex] 
+\hline
 \end{tabular}
 \end{center}
 \section{Future Work}
