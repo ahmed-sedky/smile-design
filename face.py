@@ -183,6 +183,7 @@ def checkDiscoloration(self):
     maskBGR = cv2.inRange(mouthImage, minBGR, maxBGR)
     resultBGR = cv2.bitwise_and(mouthImage, mouthImage, mask=maskBGR)
     # cv2.imshow("Masked mouthImage",resultBGR)
+    # cv2.imshow("Masked mouthImage",resultBGR)
     yellowCount = 0
     blackCount = 0
     count = 0
