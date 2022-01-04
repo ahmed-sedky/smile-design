@@ -48,25 +48,29 @@ def plotImageAfter(self, imagePath):
 
 
 def plotPalette(self):
-    scene = createScene("cached/color_palette",(560,560))
+    scene = createScene(self,"cached/color_palette",(560,560))
     self.palette.setScene(scene)
 
 
 def plotTeethColor(self):
-    scene = createScene("cached/teethColor.png",(560,560))
+    scene = createScene(self,"cached/teethColor.png",(560,560))
     self.teethColor.setScene(scene)
 
 
-def createScene(imagePath, size):
-    item = createPixmapItem(imagePath, size)
+def createScene(self,imagePath, size):
+    item = createPixmapItem(self,imagePath, size)
     scene = QtWidgets.QGraphicsScene()
     scene.addItem(item)
     return scene
 
-def createPixmapItem(imagePath, size, offset=QtCore.QPointF(0,0)):
+def createPixmapItem(self,imagePath, size, offset=QtCore.QPointF(0,0)):
     pixelMap = QPixmap(imagePath).scaled(
         int(size[0]*0.7), int(size[1]*0.7), QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
     )
+    scene = self.imageAfter.scene()
+
+    offset.setX(offset.x() * scene.width())
+    offset.setY(offset.y() * scene.height())
     item = QtWidgets.QGraphicsPixmapItem(pixelMap)
     item.setOffset(offset)
 
@@ -98,10 +102,11 @@ def shapesComboBoxChanged(self, text):
     global item
 
     removeTemplatePixmapItem(self)
-    item = Face.templateMatching(text)
+    item = Face.templateMatching(self,text)
     item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,True)
     
     self.imageAfter.scene().addItem(item)
+    scene = self.imageAfter.scene()
     self.colorsComboBox.setCurrentIndex(-1)
 
 def removeTemplatePixmapItem(self):
