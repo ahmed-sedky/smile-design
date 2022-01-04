@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtWidgets, QtCore
-from pathlib import Path
 import face as Face
 import message as Message
 
@@ -24,6 +23,10 @@ def browsefiles(self):
 
 
 def start(self):
+    global item
+    
+    removeTemplatePixmapItem(self)
+    item = QtWidgets.QGraphicsPixmapItem()
     try:
         Face.mouthDetection()
     except:
@@ -32,6 +35,7 @@ def start(self):
     plotImage(self, filePath)
     setLabel(self, "Before & After")
     disableTeethColoration(self)
+    enableFaceShapes(self)
     Face.checkAll(self)
 
 
@@ -44,23 +48,29 @@ def plotImageAfter(self, imagePath):
 
 
 def plotPalette(self):
-    scene = createScene("cached/color_palette")
+    scene = createScene("cached/color_palette",(560,560))
     self.palette.setScene(scene)
 
 
 def plotTeethColor(self):
-    scene = createScene("cached/teethColor.png")
+    scene = createScene("cached/teethColor.png",(560,560))
     self.teethColor.setScene(scene)
 
 
-def createScene(imagePath):
-    pixelMap = QPixmap(imagePath).scaled(
-        560, 560, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
-    )
-    item = QtWidgets.QGraphicsPixmapItem(pixelMap)
+def createScene(imagePath, size):
+    item = createPixmapItem(imagePath, size)
     scene = QtWidgets.QGraphicsScene()
     scene.addItem(item)
     return scene
+
+def createPixmapItem(imagePath, size, offset=QtCore.QPointF(0,0)):
+    pixelMap = QPixmap(imagePath).scaled(
+        int(size[0]*0.7), int(size[1]*0.7), QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
+    )
+    item = QtWidgets.QGraphicsPixmapItem(pixelMap)
+    item.setOffset(offset)
+
+    return item
 
 
 def setLabel(self, label):
@@ -71,12 +81,33 @@ def enableTeethColoration(self):
     self.colorsWidget.setVisible(True)
     self.colorsComboBox.setCurrentIndex(-1)
 
+def enableFaceShapes(self):
+    self.shapesWidget.setVisible(True)
+    self.shapesComboBox.setCurrentIndex(-1)
 
 def disableTeethColoration(self):
     self.colorsWidget.setVisible(False)
 
 
-def comboBoxChanged(self, text):
+def colorsComboBoxChanged(self, text):
     Face.teethColoring(text)
-    Face.templateMatching()
-    plotImageAfter(self, Face.imagePath)
+    plotImageAfter(self, Face.finalImagePath)
+    self.shapesComboBox.setCurrentIndex(-1)
+
+def shapesComboBoxChanged(self, text):
+    global item
+
+    removeTemplatePixmapItem(self)
+    item = Face.templateMatching(text)
+    item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,True)
+    
+    self.imageAfter.scene().addItem(item)
+    self.colorsComboBox.setCurrentIndex(-1)
+
+def removeTemplatePixmapItem(self):
+    global item
+
+    try:
+        self.imageAfter.scene().removeItem(item)
+    except:
+        pass

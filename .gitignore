@@ -1,1 +1,13 @@
 setup/
+__pycache__/
+cached/coloredTeeth.png
+cached/final.png
+cached/midline.png
+cached/mouth.png
+cached/image.png
+cached/template.png
+cached/teethColor.png
+cached/diastema.png
+cached/diastema2.png
+cached/test.png
+widgets/__pycache__/

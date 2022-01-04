@@ -1,13 +1,11 @@
-from numpy.lib.npyio import load
-from numpy.lib.type_check import imag
 import message as Message
 import helper as Helper
 import cv2
 import cv2
 import dlib
 import numpy as np
-import math
-from PIL import Image, ImageDraw, ImageFilter, ImageOps
+from PIL import Image, ImageDraw
+from PyQt5 import QtCore
 
 import numpy as np
 
@@ -15,13 +13,13 @@ from skimage.io import imread, imshow
 from skimage.filters import prewitt_h, prewitt_v
 
 mouthImagePath = "cached/mouth.png"
-midlineImagePath = "cached/midline.png"
+finalImagePath = "cached/final.png"
 teethColorImagePath = "cached/teethColor.png"
 coloredTeethImagePath = "cached/coloredTeeth.png"
-templatePath = "temp1.png"
-imagePath = "cached/final.png"
+templatePath = {"Square": "cached/square.png","Rectangle": "cached/rectangle.png","Triangle": "cached/triangle.png","Oval": "cached/oval.png"}
+imagePath = "cached/image.png"
 imagePath2 = "cached/diastema.png"
-imagePath3 = "cached/diastema2.png"
+templateImagePath = "cached/template.png"
 
 
 def mouthDetection():
@@ -35,6 +33,7 @@ def mouthDetection():
     global eyes_center_x
     global eyes_center_y
     global img
+    global mouth_center_y3
 
     img = cv2.imread(Helper.filePath)
     detector = dlib.get_frontal_face_detector()
@@ -55,6 +54,8 @@ def mouthDetection():
     mouth_center_y3 = shape.part(66).y
     mouth_left_x = shape.part(48).x
     mouth_right_x = shape.part(54).x
+    mouth_center_y3 = shape.part(66).y
+
     pts = []
     for i in range(0, 8):
         pts.append([xmouthpoints[i], ymouthpoints[i]])
@@ -98,10 +99,9 @@ def checkMidline():
     final_midlines = []
     shiftFlag = True
     img = cv2.imread(imagePath)
-    # 
-    image = img
+    
     for i in range(-1 * ratio, ratio):
-        bgr = np.array(image[mouth_center_y][mouth_center_x + i])
+        bgr = np.array(img[mouth_center_y][mouth_center_x + i])
         midline.append([bgr[0], mouth_center_x + i])
         # cv2.circle(img,(mouth_center_x + i,mouth_center_y), 1 ,(0,255,0),-1)
 
@@ -119,14 +119,6 @@ def checkMidline():
     for i in range(1, 3):
         distances.append(abs(final_midlines[i][1] - final_midlines[i - 1][1]))
 
-    # for x in final_midlines:
-    #     image = cv2.line(
-    #         img,
-    #         (x[1], mouth_center_y - 200),
-    #         (x[1], mouth_center_y + 100),
-    #         color=(0, 0, 255),
-    #         thickness=2,
-    #     )
     incisor_width = 0
     if abs(distances[0] - distances[1]) <= 5:
         incisor_width = distances[0]
@@ -163,19 +155,23 @@ def checkMidline():
         pixel = edges[mouth_center_y + up][final_midline + int(incisor_width / 2)]
 
     incisors_lower_edge = mouth_center_y + up - int(1.25 * incisor_width)
-    cv2.imwrite(midlineImagePath, image)
+    global incisor 
+    incisor=  mouth_center_y + up
+    #cv2.imwrite(midlineImagePath, image)
 
 
-def templateMatching():
-    im1 = Image.open(midlineImagePath)
-    im2 = Image.open(templatePath)
+def templateMatching(shape):
+    im1 = Image.open(imagePath)
+    im2 = Image.open(templatePath[shape])
     
     mouth_width = mouth_right_x - mouth_left_x
     im2 = im2.resize((int (mouth_width*0.8), int(1.25 * incisor_width)))  # 50
-        
-    im1.paste(im2, (final_midline - int(im2.size[0] / 2),
-                incisors_lower_edge), im2)
-    im1.save(imagePath, quality=95)
+    im2.save(templateImagePath)
+    offset = QtCore.QPointF((final_midline - int(im2.size[0]) / 2)-140,(incisors_lower_edge)-220)
+    return Helper.createPixmapItem(templateImagePath, im2.size, offset)
+    # im1.paste(im2, (final_midline - int(im2.size[0] / 2),
+    #             incisors_lower_edge), im2)
+    # im1.save(finalImagePath, quality=95)
 
 
 def checkDiscoloration(self):
@@ -186,6 +182,7 @@ def checkDiscoloration(self):
 
     maskBGR = cv2.inRange(mouthImage, minBGR, maxBGR)
     resultBGR = cv2.bitwise_and(mouthImage, mouthImage, mask=maskBGR)
+    # cv2.imshow("Masked mouthImage",resultBGR)
     # cv2.imshow("Masked mouthImage",resultBGR)
     yellowCount = 0
     blackCount = 0
@@ -273,7 +270,7 @@ def createTeethColorImage(rgb):
 def teethColoring(text):
     global img
 
-    img = cv2.imread(midlineImagePath)
+    img = cv2.imread(imagePath)
     if results.find("There is no gummy smile") == -1:
         # 120,140,140 (#140, 170, 140 for gummy smile)
         minBGR = np.array([50, 180, 30])  # ([100, 180, 100])
@@ -319,97 +316,50 @@ def teethColoring(text):
             if flag:
                 img[y + i][x + j] = result[i][j]
 
-    cv2.imwrite(midlineImagePath, img)
+    cv2.imwrite(finalImagePath, img)
 
 
 def checkDiastema():
     global results
     global img
+    global incisor
 
-    img = cv2.imread(Helper.filePath)
-    if results.find("There is no gummy smile") == -1:
-        minBGR = np.array([50, 180, 30]) 
-        maxBGR = np.array([255, 255, 248]) 
-    else:
-        minBGR = np.array([50, 140, 30]) 
-        maxBGR = np.array([255, 255, 255])
-    mask2 = cv2.inRange(mouthImage, minBGR, maxBGR)
-
-    low_red = np.array([84, 155, 161]) 
-    high_red = np.array([255, 255, 179])  
-    mask0 = cv2.inRange(mouthImage, low_red, high_red)
-
-    # join my masks
-    mask = mask2 - mask0
-  
-
-    mask = 255 - mask
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 1))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    result = mouthImage.copy()
-
-    newColor = ()
-    newColor = (250, 250, 250)
-
-
-    result[mask == 0] = newColor
-    cv2.imwrite(coloredTeethImagePath, result)
-    cleanArr = []
-    for i in range(len(result)):
-        for j in range(len(result[0])):
-            pixel = np.array(result[i][j])
-            if pixel[0] == 0 and pixel[1] == 0 and pixel[2] == 0:
-                continue
-            cleanArr.append(pixel)
-            pixel2 = np.array(img[y + i][x + j])
-            flag = False
-            for k in range(3):
-                if pixel[k] != pixel2[k]:
-                    flag = True
-                    break
-            if flag:
-                img[y + i][x + j] = result[i][j]
-
-    cv2.imwrite(imagePath2, img)
-    img5 = cv2.imread(imagePath2)
+    
+    img5 = cv2.imread(Helper.filePath , 0)
     img6 = img5
     gap = 0
-    mean = np.mean(cleanArr, axis=0)
-
-    for i in range(-5, 5):
+    row=0
+    for i in range(0, 10):
         if gummy_smile:
-            pixel_color = np.array(
-                img6[mouth_center_y + 5][mouth_center_x + i])
-            #cv2.circle(img,(mouth_center_x + i,mouth_center_y2 + 20), 1 ,(0,0,255),-1)
-            if pixel_color[0] < (int(mean[0]) -20):
-                gap += 1
-            image = cv2.rectangle(
-            img,
-            (mouth_center_x-1, mouth_center_y +5),
-            (mouth_center_x+1, mouth_center_y + 4),
-            color=(255, 0, 0),
-            thickness=2,
-            )
-            cv2.imwrite(imagePath3, image)
-        else:
-            image = cv2.rectangle(
-            img,
-                (mouth_center_x-1, mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4)+1),
-                (mouth_center_x+1, mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) +2 ),
-                color=(255, 0, 0),
-                thickness=2,
-            )
-            cv2.imwrite(imagePath3, image)
-            pixel_color = np.array(img6[mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) ][mouth_center_x + i]) #mouth_center_y2 +9 
-            if pixel_color[0] < (int(mean[0]) -20) :
-                gap += 1
+            for j in range(-5,5):
+               pixel_color = np.array(img6[mouth_center_y2 + 16 + i][mouth_center_x + j])
+             
+               if mouth_center_y2 + 16 + i > incisor:
+                   break
+               #cv2.circle(img6,(mouth_center_x + j,mouth_center_y2 + 16 + i), 1 ,(0,0,255),-1)
+               if pixel_color < 120:
+                  gap += 1
+            if gap > 2 :
+                row +=1
+                gap=0
 
-    if gap > 2 : #and gap < 8:
+        else:
+            for j in range(-5,5):
+               pixel_color = np.array(img6[mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) + i ][mouth_center_x + j])
+               if mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) + i > incisor:
+                   break
+               if pixel_color < 120:
+                 gap += 1
+            if gap > 2 :
+                row +=1
+                gap=0
+
+    if row > 2 :
         results += "There is a diastema"
     else:
         results += "There is no diastema"
-    #cv2.imwrite(imagePath, img)
+    cv2.imwrite(imagePath2, img6)
+
 
 def matchTeethColor(self, teeth_mean):
     global results
@@ -466,11 +416,8 @@ def matchTeethColor(self, teeth_mean):
             index = idx
             similarity = 100 - (100 * (result / mean_avg))
             similarity = round(similarity, 2)
-            # print(
-            #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
 
     color_shade = shades_map.get(index)
-    # print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
     results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
 
 
@@ -482,7 +429,6 @@ def checkAll(self):
     checkDiscoloration(self)
     checkMidline()
     checkDiastema()
-    templateMatching()
     Helper.plotImageAfter(self, imagePath)
     showResults(self)
 
