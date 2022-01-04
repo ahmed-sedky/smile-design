@@ -167,7 +167,7 @@ def templateMatching(shape):
     mouth_width = mouth_right_x - mouth_left_x
     im2 = im2.resize((int (mouth_width*0.8), int(1.25 * incisor_width)))  # 50
     im2.save(templateImagePath)
-    offset = QtCore.QPointF(final_midline - int(im2.size[0]) / 2,incisors_lower_edge)
+    offset = QtCore.QPointF((final_midline - int(im2.size[0]) / 2)-140,(incisors_lower_edge)-220)
     return Helper.createPixmapItem(templateImagePath, im2.size, offset)
     # im1.paste(im2, (final_midline - int(im2.size[0] / 2),
     #             incisors_lower_edge), im2)
@@ -348,20 +348,11 @@ def checkDiastema():
                pixel_color = np.array(img6[mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) + i ][mouth_center_x + j])
                if mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) + i > incisor:
                    break
-               print(pixel_color)
-               #cv2.circle(img6,(mouth_center_x + j , mouth_center_y2 + 10 + i), 1 ,(0,0,255),-1)
-            # and pixel_color[1]<=120 and pixel_color[2]<=120:
                if pixel_color < 120:
-                 #or (#pixel_color[0] < 150 #and pixel_color[1] < 150 and pixel_color[2] > 200#):
                  gap += 1
-            #print(gap)
             if gap > 2 :
                 row +=1
                 gap=0
-
-    
-        #print(pixel_color)
-    print(row)
 
     if row > 2 :
         results += "There is a diastema"
@@ -425,11 +416,8 @@ def matchTeethColor(self, teeth_mean):
             index = idx
             similarity = 100 - (100 * (result / mean_avg))
             similarity = round(similarity, 2)
-            # print(
-            #     f"difference: {result} ,index: {idx}, percentage: {similarity}")
 
     color_shade = shades_map.get(index)
-    # print(f"Closest shade: ({color_shade}) with similarity = {similarity}%")
     results += f"Closest shade: ({color_shade}) with similarity = {similarity}%\n"
 
 

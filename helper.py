@@ -24,7 +24,8 @@ def browsefiles(self):
 
 def start(self):
     global item
-
+    
+    removeTemplatePixmapItem(self)
     item = QtWidgets.QGraphicsPixmapItem()
     try:
         Face.mouthDetection()
@@ -43,11 +44,6 @@ def plotImage(self, imagePath):
 
 
 def plotImageAfter(self, imagePath):
-    global item
-    try:
-        self.imageAfter.scene().removeItem(item)
-    except:
-        pass
     self.imageAfter.setPhoto(QPixmap(imagePath))
 
 
@@ -100,12 +96,18 @@ def colorsComboBoxChanged(self, text):
 
 def shapesComboBoxChanged(self, text):
     global item
-    try:
-        self.imageAfter.scene().removeItem(item)
-    except:
-        pass
+
+    removeTemplatePixmapItem(self)
     item = Face.templateMatching(text)
     item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,True)
     
     self.imageAfter.scene().addItem(item)
     self.colorsComboBox.setCurrentIndex(-1)
+
+def removeTemplatePixmapItem(self):
+    global item
+
+    try:
+        self.imageAfter.scene().removeItem(item)
+    except:
+        pass

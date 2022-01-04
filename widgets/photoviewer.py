@@ -42,17 +42,20 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             560, 560, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
         )
         self._photo.setPixmap(pixmap)
+        self.fitInView()
 
     def wheelEvent(self, event):
         if self.hasPhoto():
             if event.angleDelta().y() > 0:
-                factor = 1.25
-                self._zoom += 1
+                if self._zoom < 10:
+                    factor = 1.25
+                    self._zoom += 1
             else:
                 factor = 0.8
                 self._zoom -= 1
             if self._zoom > 0:
-                self.scale(factor, factor)
+                if self._zoom != 10:
+                    self.scale(factor, factor)
             elif self._zoom == 0:
                 self.fitInView()
             else:
