@@ -16,7 +16,8 @@ mouthImagePath = "cached/mouth.png"
 finalImagePath = "cached/final.png"
 teethColorImagePath = "cached/teethColor.png"
 coloredTeethImagePath = "cached/coloredTeeth.png"
-templatePath = {"Square": "cached/square.png","Rectangle": "cached/rectangle.png","Triangle": "cached/triangle.png","Oval": "cached/oval.png"}
+templatePath = {"Square": "cached/square.png", "Rectangle": "cached/rectangle.png",
+                "Triangle": "cached/triangle.png", "Oval": "cached/oval.png"}
 imagePath = "cached/image.png"
 imagePath2 = "cached/diastema.png"
 templateImagePath = "cached/template.png"
@@ -49,7 +50,8 @@ def mouthDetection():
     eyes_center_x = shape.part(27).x
     eyes_center_y = shape.part(27).y
     mouth_center_x = shape.part(62).x
-    mouth_center_y = int((shape.part(66).y - shape.part(62).y) / 2) + shape.part(62).y
+    mouth_center_y = int(
+        (shape.part(66).y - shape.part(62).y) / 2) + shape.part(62).y
     mouth_center_y2 = shape.part(62).y
     mouth_center_y3 = shape.part(66).y
     mouth_left_x = shape.part(48).x
@@ -74,7 +76,7 @@ def mouthCrop():
 
     rect = cv2.boundingRect(mouthPoints)
     x, y, w, h = rect
-    croped = img[y : y + h, x : x + w].copy()
+    croped = img[y: y + h, x: x + w].copy()
 
     mouthPoints = mouthPoints - mouthPoints.min(axis=0)
 
@@ -99,7 +101,7 @@ def checkMidline():
     final_midlines = []
     shiftFlag = True
     img = cv2.imread(imagePath)
-    
+
     for i in range(-1 * ratio, ratio):
         bgr = np.array(img[mouth_center_y][mouth_center_x + i])
         midline.append([bgr[0], mouth_center_x + i])
@@ -108,7 +110,7 @@ def checkMidline():
     midline.sort()
 
     for idx, x in enumerate(midline):
-        for elem in midline[idx + 1 :]:
+        for elem in midline[idx + 1:]:
             if (elem[1] < x[1] + 10) and (elem[1] > x[1] - 10):
                 midline.remove(elem)
     for i in range(0, 3):
@@ -152,23 +154,34 @@ def checkMidline():
     up = 0
     while int(pixel) == 0:
         up += 1
-        pixel = edges[mouth_center_y + up][final_midline + int(incisor_width / 2)]
+        pixel = edges[mouth_center_y +
+                      up][final_midline + int(incisor_width / 2)]
 
+    image = cv2.line(
+        img,
+        (final_midline + int(incisor_width/2), mouth_center_y + up),
+        (final_midline + int(incisor_width/2) + 200, mouth_center_y + up),
+        color=(0, 20, 0),
+        thickness=2,
+    )
     incisors_lower_edge = mouth_center_y + up - int(1.25 * incisor_width)
-    global incisor 
-    incisor=  mouth_center_y + up
+    global incisor
+    incisor = mouth_center_y + up
+    #cv2.imwrite(midlineImagePath, image)
+    #print(mouth_center_y + up)
     #cv2.imwrite(midlineImagePath, image)
 
 
-def templateMatching(shape):
+def templateMatching(self,shape):
     im1 = Image.open(imagePath)
     im2 = Image.open(templatePath[shape])
-    
-    mouth_width = mouth_right_x - mouth_left_x
-    im2 = im2.resize((int (mouth_width*0.8), int(1.25 * incisor_width)))  # 50
+    mouth_width = mouth_right_x - mouth_left_x  
+    im2 = im2.resize((int(mouth_width*0.8), int(1.25 * incisor_width)))  # 50
+
     im2.save(templateImagePath)
-    offset = QtCore.QPointF((final_midline - int(im2.size[0]) / 2)-140,(incisors_lower_edge)-220)
-    return Helper.createPixmapItem(templateImagePath, im2.size, offset)
+    offset = QtCore.QPointF(
+        (((final_midline - int(im2.size[0]) / 2)) / im1.size[0]), (incisors_lower_edge / im1.size[1]))
+    return Helper.createPixmapItem(self,templateImagePath, im2.size, offset)
     # im1.paste(im2, (final_midline - int(im2.size[0] / 2),
     #             incisors_lower_edge), im2)
     # im1.save(finalImagePath, quality=95)
@@ -249,7 +262,7 @@ def checkGummySmile():
 
     ratio = redCount / ((rows * cols) - blackCount)
     global gummy_smile
-    if ratio > 0.07: 
+    if ratio > 0.07:
         results += "There is a gummy smile\n"
         gummy_smile = True
     else:
@@ -324,37 +337,38 @@ def checkDiastema():
     global img
     global incisor
 
-    
-    img5 = cv2.imread(Helper.filePath , 0)
+    img5 = cv2.imread(Helper.filePath, 0)
     img6 = img5
     gap = 0
-    row=0
+    row = 0
     for i in range(0, 10):
         if gummy_smile:
-            for j in range(-5,5):
-               pixel_color = np.array(img6[mouth_center_y2 + 16 + i][mouth_center_x + j])
-             
-               if mouth_center_y2 + 16 + i > incisor:
-                   break
-               #cv2.circle(img6,(mouth_center_x + j,mouth_center_y2 + 16 + i), 1 ,(0,0,255),-1)
-               if pixel_color < 120:
-                  gap += 1
-            if gap > 2 :
-                row +=1
-                gap=0
+            for j in range(-5, 5):
+                pixel_color = np.array(
+                    img6[mouth_center_y2 + 16 + i][mouth_center_x + j])
+
+                if mouth_center_y2 + 16 + i > incisor:
+                    break
+                #cv2.circle(img6,(mouth_center_x + j,mouth_center_y2 + 16 + i), 1 ,(0,0,255),-1)
+                if pixel_color < 120:
+                    gap += 1
+            if gap > 2:
+                row += 1
+                gap = 0
 
         else:
-            for j in range(-5,5):
-               pixel_color = np.array(img6[mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) + i ][mouth_center_x + j])
-               if mouth_center_y2 + int((mouth_center_y3-mouth_center_y2 ) /4) + i > incisor:
-                   break
-               if pixel_color < 120:
-                 gap += 1
-            if gap > 2 :
-                row +=1
-                gap=0
+            for j in range(-5, 5):
+                pixel_color = np.array(
+                    img6[mouth_center_y2 + int((mouth_center_y3-mouth_center_y2) / 4) + i][mouth_center_x + j])
+                if mouth_center_y2 + int((mouth_center_y3-mouth_center_y2) / 4) + i > incisor:
+                    break
+                if pixel_color < 120:
+                    gap += 1
+            if gap > 2:
+                row += 1
+                gap = 0
 
-    if row > 2 :
+    if row > 2:
         results += "There is a diastema"
     else:
         results += "There is no diastema"
