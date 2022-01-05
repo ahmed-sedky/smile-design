@@ -349,8 +349,16 @@ background-color: rgb(50, 50, 70);</string>
     </property>
     <addaction name="checkAll"/>
    </widget>
+   <widget class="QMenu" name="menuTemplate">
+    <property name="title">
+     <string>Template</string>
+    </property>
+    <addaction name="scaleTemplateUp"/>
+    <addaction name="scaleTemplateDown"/>
+   </widget>
    <addaction name="menuFILE"/>
    <addaction name="menuCheck"/>
+   <addaction name="menuTemplate"/>
   </widget>
   <action name="openImage">
    <property name="text">
@@ -366,6 +374,22 @@ background-color: rgb(50, 50, 70);</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="scaleTemplateUp">
+   <property name="text">
+    <string>Scale Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
+   </property>
+  </action>
+  <action name="scaleTemplateDown">
+   <property name="text">
+    <string>Scale Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
    </property>
   </action>
  </widget>
