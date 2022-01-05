@@ -102,26 +102,26 @@ Before isntalling the required libraries, make sure to have python3 installed.
 ## **Usage**
 
 First, you need to run `app.py`. The GUI shown should be as the one attached below. \
-![GUI](readme-images\gui_open.png) 
+![GUI](./readme-images/gui_open.png)
 <br /><br />
 
 On the toolbar, click on file, then open image(or just use the hotkey Ctrl+O) and pick the image file (supports different type of images). \
-![open_file](readme-images\open_file.png) 
+![open_file](./readme-images/open_file.png) 
 <br /><br />
 
 After loading the image properly, the result will popup as a message box like the screenshot attached below.
 \
-![results](readme-images\results.png)
+![results](./readme-images/results.png)
 <br /><br />
 
 After closing `Results window`, you will be able to select the template shape or adjust teeth color using the following dropdown menus.
 \
-![options](readme-images\options.png)
+![options](./readme-images/options.png)
 <br /><br />
 
 You should be able to adjust the template on the smile freely while comparing the results with the 'before' picture on the left side of the program as shown.
 \
-![before_after](readme-images\before_after.png)
+![before_after](./readme-images/before_after.png)
 <br /><br />
 
 From the toolbar, you can rescale the template to match the face provided. Remember that you can always reopen the results widnow by pressing the hotkey (Ctrl+A)\
