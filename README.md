@@ -70,7 +70,7 @@ Before isntalling the required libraries, make sure to have python3 installed.
 
 1. Clone the repository
    ```sh
-   git clone https://github.com/your_username_/Project-Name.git
+   https://github.com/ahmed-sedky/smile-design.git
    ```
 
 2. Install PyQt5 packages
@@ -105,16 +105,16 @@ First, you need to run `app.py`. The GUI shown should be as the one attached bel
 ![GUI](readme-images\gui_open.png) 
 <br /><br />
 
-On the toolbar, click on file then open image(or use the hotkey Ctrl+O) and pick the image file (supports different type of images). \
+On the toolbar, click on file, then open image(or just use the hotkey Ctrl+O) and pick the image file (supports different type of images). \
 ![open_file](readme-images\open_file.png) 
 <br /><br />
 
-After loading the image properly, the result will popup as a text box like the screenshot below.
+After loading the image properly, the result will popup as a message box like the screenshot attached below.
 \
 ![results](readme-images\results.png)
 <br /><br />
 
-After closing the Results window, you will be able to select the template shape or adjust teeth color using the following dropdown menus.
+After closing `Results window`, you will be able to select the template shape or adjust teeth color using the following dropdown menus.
 \
 ![options](readme-images\options.png)
 <br /><br />
@@ -150,9 +150,13 @@ TA. Laila Abbas
 * Mostafa Mahmoud - (https://github.com/MostafaAbbas-git)
 
 * Ahmed Abdelfatah - (https://github.com/Ta7a21)
+
 * Ehab Wahba - (https://github.com/ehab74)
+
 * Mohaned Alaa - (https://github.com/Mohanedalaa)
+
 * Mo'men Maged - (https://github.com/mmn420)
+
 * Ahmed Sedky - (https://github.com/ahmed-sedky)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
