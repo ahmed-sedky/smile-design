@@ -21,9 +21,10 @@ class Ui(QMainWindow):
         self.shapesComboBox.activated[str].connect(
             lambda text: Helper.shapesComboBoxChanged(self, text)
         )
-        self.scaleTemplateUp.triggered.connect(lambda: Helper.scaleTemplate(self))
-        self.scaleTemplateDown.triggered.connect(lambda: Helper.scaleTemplate(self))
-
+        self.scaleTemplateUp.triggered.connect(lambda: Helper.scaleTemplate(self, 1.1))
+        self.scaleTemplateDown.triggered.connect(
+            lambda: Helper.scaleTemplate(self, 0.9)
+        )
 
 
 if __name__ == "__main__":

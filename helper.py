@@ -23,10 +23,15 @@ def browsefiles(self):
 
 
 def start(self):
-    global item
-    
-    removeTemplatePixmapItem(self)
-    item = QtWidgets.QGraphicsPixmapItem()
+    global originalTemplate
+    global currentTemplate
+
+    try:
+        removePixmapItem(self, originalTemplate)
+        removePixmapItem(self, currentTemplate)
+    except:
+        pass
+
     try:
         Face.mouthDetection()
     except:
@@ -35,7 +40,7 @@ def start(self):
     plotImage(self, filePath)
     setLabel(self, "Before & After")
     disableTeethColoration(self)
-    enableFaceShapes(self)
+    enableActions(self)
     Face.checkAll(self)
 
 
@@ -48,24 +53,19 @@ def plotImageAfter(self, imagePath):
 
 
 def plotPalette(self):
-    scene = createScene(self,"cached/color_palette",(560,560))
-    self.palette.setScene(scene)
+    self.palette.setPhoto(QPixmap("cached/color_palette"))
 
 
 def plotTeethColor(self):
-    scene = createScene(self,"cached/teethColor.png",(560,560))
-    self.teethColor.setScene(scene)
+    self.teethColor.setPhoto(QPixmap("cached/teethColor.png"))
 
 
-def createScene(self,imagePath, size):
-    item = createPixmapItem(self,imagePath, size)
-    scene = QtWidgets.QGraphicsScene()
-    scene.addItem(item)
-    return scene
-
-def createPixmapItem(self,imagePath, size, offset=QtCore.QPointF(0,0)):
+def createPixmapItem(self, imagePath, size, offset=QtCore.QPointF(0, 0)):
     pixelMap = QPixmap(imagePath).scaled(
-        int(size[0]*0.7), int(size[1]*0.7), QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation
+        int(size[0]),
+        int(size[1]),
+        QtCore.Qt.KeepAspectRatio,
+        QtCore.Qt.FastTransformation,
     )
     scene = self.imageAfter.scene()
 
@@ -85,9 +85,14 @@ def enableTeethColoration(self):
     self.colorsWidget.setVisible(True)
     self.colorsComboBox.setCurrentIndex(-1)
 
-def enableFaceShapes(self):
+
+def enableActions(self):
+    self.checkAll.setEnabled(True)
+    self.scaleTemplateUp.setEnabled(True)
+    self.scaleTemplateDown.setEnabled(True)
     self.shapesWidget.setVisible(True)
     self.shapesComboBox.setCurrentIndex(-1)
+
 
 def disableTeethColoration(self):
     self.colorsWidget.setVisible(False)
@@ -98,32 +103,59 @@ def colorsComboBoxChanged(self, text):
     plotImageAfter(self, Face.finalImagePath)
     self.shapesComboBox.setCurrentIndex(-1)
 
-def shapesComboBoxChanged(self, text):
-    global item
 
-    removeTemplatePixmapItem(self)
-    item = Face.templateMatching(self,text)
-    item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,True)
-    
-    self.imageAfter.scene().addItem(item)
-    scene = self.imageAfter.scene()
+def shapesComboBoxChanged(self, text):
+    global originalTemplate
+    global currentTemplate
+    global currentTemplateScale
+
+    currentTemplateScale = 1
+    try:
+        removePixmapItem(self, originalTemplate)
+        removePixmapItem(self, currentTemplate)
+    except:
+        pass
+
+    originalTemplate = Face.templateMatching(self, text)
+    originalTemplate.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
+
+    currentTemplate = QtWidgets.QGraphicsPixmapItem(originalTemplate.pixmap())
+    currentTemplate.setOffset(originalTemplate.offset())
+    self.imageAfter.scene().addItem(originalTemplate)
     self.colorsComboBox.setCurrentIndex(-1)
 
-def removeTemplatePixmapItem(self):
-    global item
 
+def removePixmapItem(self, item):
     try:
         self.imageAfter.scene().removeItem(item)
     except:
         pass
 
-def scaleTemplate(self):
-    global item
+
+def scaleTemplate(self, scale):
+    global currentTemplate
+    global originalTemplate
+    global currentTemplateScale
 
     try:
-        item.setPixmap(item.pixmap().scale(0.8,0.8))
-        removeTemplatePixmapItem(self)
-        print(item)
-        self.imageAfter.scene().addItem(item)
+        currentTemplateScale *= scale
+        removePixmapItem(self, originalTemplate)
+        removePixmapItem(self, currentTemplate)
+        currentTemplate.setPixmap(originalTemplate.pixmap())
+
+        templateSize = (
+            originalTemplate.pixmap().width(),
+            originalTemplate.pixmap().height(),
+        )
+        currentTemplate.setPixmap(
+            currentTemplate.pixmap().scaled(
+                int(templateSize[0] * currentTemplateScale),
+                int(templateSize[1] * currentTemplateScale),
+                QtCore.Qt.IgnoreAspectRatio,
+                QtCore.Qt.FastTransformation,
+            )
+        )
+        currentTemplate.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
+        self.imageAfter.scene().addItem(currentTemplate)
     except:
         pass

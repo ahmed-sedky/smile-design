@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>766</width>
+    <width>1246</width>
     <height>800</height>
    </rect>
   </property>
@@ -19,11 +19,17 @@ background-color: rgb(30, 30, 50);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="2">
+    <item row="1" column="2" alignment="Qt::AlignHCenter">
      <widget class="PhotoViewer" name="imageAfter">
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>620</height>
+       </size>
+      </property>
       <property name="maximumSize">
        <size>
-        <width>620</width>
+        <width>400</width>
         <height>620</height>
        </size>
       </property>
@@ -31,10 +37,13 @@ background-color: rgb(30, 30, 50);</string>
        <bool>true</bool>
       </property>
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="lineWidth">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -50,7 +59,7 @@ background-color: rgb(30, 30, 50);</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="0" colspan="5" alignment="Qt::AlignHCenter">
+    <item row="0" column="0" colspan="5" alignment="Qt::AlignLeft">
      <widget class="QLabel" name="statusLabel">
       <property name="minimumSize">
        <size>
@@ -79,11 +88,17 @@ background-color: rgb(30, 30, 50);</string>
     <item row="1" column="1">
      <widget class="QWidget" name="seperator" native="true"/>
     </item>
-    <item row="1" column="0">
+    <item row="1" column="0" alignment="Qt::AlignHCenter">
      <widget class="PhotoViewer" name="image">
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>620</height>
+       </size>
+      </property>
       <property name="maximumSize">
        <size>
-        <width>620</width>
+        <width>400</width>
         <height>620</height>
        </size>
       </property>
@@ -91,10 +106,13 @@ background-color: rgb(30, 30, 50);</string>
        <string notr="true"/>
       </property>
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="lineWidth">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -278,7 +296,7 @@ background-color: rgb(30, 30, 50);</string>
            </widget>
           </item>
           <item>
-           <widget class="QGraphicsView" name="teethColor">
+           <widget class="PhotoViewer" name="teethColor">
             <property name="maximumSize">
              <size>
               <width>50</width>
@@ -297,9 +315,15 @@ background-color: rgb(30, 30, 50);</string>
         </widget>
        </item>
        <item>
-        <widget class="QGraphicsView" name="palette">
+        <widget class="PhotoViewer" name="palette">
          <property name="enabled">
           <bool>true</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>112</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="maximumSize">
           <size>
@@ -325,7 +349,7 @@ background-color: rgb(30, 30, 50);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>766</width>
+     <width>1246</width>
      <height>21</height>
     </rect>
    </property>
@@ -369,6 +393,9 @@ background-color: rgb(50, 50, 70);</string>
    </property>
   </action>
   <action name="checkAll">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Check Principles</string>
    </property>
@@ -377,6 +404,9 @@ background-color: rgb(50, 50, 70);</string>
    </property>
   </action>
   <action name="scaleTemplateUp">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Scale Up</string>
    </property>
@@ -385,6 +415,9 @@ background-color: rgb(50, 50, 70);</string>
    </property>
   </action>
   <action name="scaleTemplateDown">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Scale Down</string>
    </property>
