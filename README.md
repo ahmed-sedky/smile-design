@@ -92,8 +92,20 @@ Before isntalling the required libraries, make sure to have python3 installed.
    pip install opencv-python
    pip install opencv-contrib-python
    ```
-   
+  
+6. Download the `setup` folder that contains `data.dat` file. Extract it in the project directory; the project folder should look like the one attached below:
+   ```
+   https://drive.google.com/file/d/1rz4uclaSn2P2sfGbuoSqPKAxINrWT6VB/view?usp=sharing
+   ```
+    ![folders](./readme-images/folders.png)
 
+
+7. If you have any problems installing one of the packages, you may run this command to install the exact versions of the mentioned packages in `requirements.txt`.
+ **(This step is not necessary)**
+   ```sh
+   pip install -r ./requirements.txt
+   ```
+  
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
